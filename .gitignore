@@ -1,0 +1,29 @@
+# Node
+node_modules/
+frontend/dist/
+
+# Python
+__pycache__/
+*.pyc
+.env
+venv/
+.env.*
+
+# ML artifacts
+ml-service/trained_models/*
+!ml-service/trained_models/.gitkeep
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Coverage / tests
+.coverage
+pytest_cache/
+
+# Misc
+.idea/
+.vscode/

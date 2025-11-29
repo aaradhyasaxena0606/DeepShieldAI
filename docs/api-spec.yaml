@@ -1,0 +1,65 @@
+openapi: 3.1.0
+info:
+  title: VoiceGuard AI API
+  version: 0.1.0
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+  /analyze:
+    post:
+      summary: Analyze audio file
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Analysis result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  prediction:
+                    type: string
+                    enum: [fake, real]
+                  confidence:
+                    type: number
+                  confidence_level:
+                    type: string
+                  ai_explanation:
+                    type: string
+                  detected_patterns:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        explanation:
+                          type: string
+                        technical:
+                          type: string
+                  recommendation:
+                    type: string
+                  processing_time_ms:
+                    type: integer
+        '400':
+          description: Bad request

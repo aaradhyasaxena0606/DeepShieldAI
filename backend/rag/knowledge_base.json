@@ -1,0 +1,44 @@
+{
+  "deepfake_patterns": [
+    {
+      "id": "pattern_1",
+      "name": "Unnatural Pitch Stability",
+      "indicators": ["low_pitch_variance", "high_fake_confidence"],
+      "explanation": "Synthetic voices often maintain unnaturally stable pitch, lacking micro-variations.",
+      "technical": "Pitch variance < 15Hz over 1s windows"
+    },
+    {
+      "id": "pattern_2",
+      "name": "Missing Breath Sounds",
+      "indicators": ["no_breath_detected", "continuous_speech"],
+      "explanation": "AI-generated audio typically lacks natural breathing sounds between phrases.",
+      "technical": "Zero-crossing anomaly in pause regions"
+    },
+    {
+      "id": "pattern_3",
+      "name": "Spectral Artifacts",
+      "indicators": ["spectral_rolloff_anomaly", "mfcc_outliers"],
+      "explanation": "Neural TTS models create specific frequency patterns absent in natural recordings.",
+      "technical": "Spectral rolloff > 0.85 mid bands"
+    },
+    {
+      "id": "pattern_4",
+      "name": "Robotic Prosody",
+      "indicators": ["uniform_energy", "lack_of_emphasis"],
+      "explanation": "Deepfakes often have monotonous rhythm and lack natural emphasis.",
+      "technical": "Energy variance < 0.3 across syllables"
+    },
+    {
+      "id": "pattern_5",
+      "name": "ElevenLabs Signature",
+      "indicators": ["high_frequency_cutoff", "specific_mfcc_pattern"],
+      "explanation": "Frequency characteristics typical of ElevenLabs synthesis are present.",
+      "technical": "HF rolloff ~8kHz with distinctive MFCC profile"
+    }
+  ],
+  "recommendations": {
+    "high_confidence_fake": "Do NOT trust this audio. Verify via secure channel (video call/code word).",
+    "medium_confidence": "Suspicious patterns detected. Verify through alternative channel before action.",
+    "low_confidence": "Indeterminate. Exercise caution if content impacts sensitive decisions."
+  }
+}

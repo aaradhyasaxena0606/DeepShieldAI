@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  @apply bg-gray-950 text-gray-100 font-sans antialiased;
+}
+
+.app-container {
+  @apply flex min-h-screen flex-col;
+}
+
+.glass-card {
+  @apply bg-gray-900/60 backdrop-blur-md rounded-lg shadow-glow border border-gray-800;
+}
+
+.gradient-text {
+  @apply bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent;
+}
