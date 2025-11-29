@@ -1,3 +1,9 @@
+# VoiceGuard AI - API Routes Module
+# Create APIRouter, define POST /analyze endpoint accepting UploadFile
+# Workflow: Validate file → Save temp file → Call audio_processor.process() → Call model_service.predict()
+# → Call rag_service.get_explanation() → Return JSON response with prediction, confidence, explanation, patterns
+# Add error handling: 400 for invalid file, 500 for processing errors, 413 for file too large
+
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from services.audio_processor import extract_features
 from services.model_service import ModelService

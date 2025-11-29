@@ -1,3 +1,8 @@
+// VoiceGuard AI - Analysis History Page (Optional Feature)
+// Retrieve past analyses from localStorage (key: "voiceguard_history"), display as cards/table
+// Each entry shows: timestamp, filename, prediction, confidence, with "View Details" button
+// If empty, show empty state: "No analysis history yet. Analyze your first audio!"
+
 export default function HistoryPage() {
   return (
     <div className="space-y-4">

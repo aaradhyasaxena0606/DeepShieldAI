@@ -1,3 +1,9 @@
+# VoiceGuard AI - Audio Processing Service
+# load_audio(file_path): Load audio with librosa, resample to 16kHz, return numpy array
+# extract_spectrogram(audio): Compute mel-spectrogram using librosa.feature.melspectrogram, resize to 128x128, normalize 0-1
+# extract_features(audio): Calculate MFCC, spectral rolloff, pitch variance, zero-crossing rate, energy variance
+# Return dict: {spectrogram, mfcc_mean, mfcc_std, spectral_rolloff, pitch_variance, zcr, energy_variance}
+
 import io
 import numpy as np
 import librosa

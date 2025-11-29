@@ -1,3 +1,7 @@
+# VoiceGuard AI - .gitignore
+# Prevents committing dependencies, secrets, and large model files to Git
+# Add: node_modules/, __pycache__/, .env, *.pyc, .venv/, dist/, build/, trained_models/*.h5, .DS_Store
+
 # Node
 node_modules/
 frontend/dist/

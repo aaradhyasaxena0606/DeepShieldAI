@@ -1,3 +1,7 @@
+// VoiceGuard AI - Audio Waveform Visualization Component
+// Initialize wavesurfer.js on audio file load, render waveform visualization in #3B82F6 color
+// Add play/pause button, show current time and duration, include download button (optional)
+
 import { useEffect, useRef } from 'react'
 import WaveSurfer from 'wavesurfer.js'
 

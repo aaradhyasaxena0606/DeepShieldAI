@@ -1,3 +1,7 @@
+// VoiceGuard AI - React Application Entry Point
+// Import React, ReactDOM, App component, and index.css
+// Use ReactDOM.createRoot(document.getElementById('root')).render(<App />)
+
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'

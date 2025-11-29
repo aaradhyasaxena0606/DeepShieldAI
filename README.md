@@ -1,4 +1,7 @@
-# VoiceGuard AI
+# VoiceGuard AI - Deepfake Audio Detection Platform
+
+> **Project overview with setup instructions, tech stack, team members, demo links, and "Run Locally" guide**
+> Include problem statement, features list, architecture diagram link, and hackathon context
 
 Lightweight deepfake audio detection with interpretable explanations.
 

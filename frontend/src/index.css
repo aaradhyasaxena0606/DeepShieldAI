@@ -1,3 +1,8 @@
+/* VoiceGuard AI - Global Styles
+   Import Tailwind: @tailwind base; @tailwind components; @tailwind utilities;
+   Add custom animations: @keyframes pulse-slow, fadeIn, slideUp for results reveal
+   Define global styles: dark background (#0F172A), smooth scrolling, custom scrollbar */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

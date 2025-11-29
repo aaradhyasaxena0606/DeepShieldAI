@@ -1,3 +1,7 @@
+// VoiceGuard AI - Audio Upload & Analysis Component
+// Create drag-and-drop zone with file input fallback, validate: accepts only WAV/MP3, max size 10MB
+// Show file name and size after selection, display error toast if validation fails, emit selected file to parent via props
+
 import { useState } from 'react'
 import axios from 'axios'
 import Waveform from './Waveform.jsx'

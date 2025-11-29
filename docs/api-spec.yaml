@@ -1,3 +1,7 @@
+# VoiceGuard AI - OpenAPI Specification
+# Define OpenAPI spec with POST /analyze endpoint (accepts multipart/form-data audio file)
+# Document response schema: {prediction, confidence, ai_explanation, detected_patterns, recommendation, processing_time_ms}
+
 openapi: 3.1.0
 info:
   title: VoiceGuard AI API

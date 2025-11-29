@@ -1,4 +1,7 @@
-# VoiceGuard AI Architecture
+# VoiceGuard AI - System Architecture
+
+> **Draw system architecture: Frontend (React) → Backend (FastAPI) → ML Model + RAG (Gemini)**
+> Explain data flow from audio upload to mel-spectrogram extraction to CNN inference to RAG explanation
 
 ## Overview
 Frontend (React + Vite + Tailwind) uploads audio to Backend (FastAPI). Backend preprocesses audio (librosa) -> mel-spectrogram features -> model inference (CNN) -> rule-based pattern matching + Gemini (later) for explanation.

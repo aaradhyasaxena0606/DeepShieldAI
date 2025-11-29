@@ -1,4 +1,7 @@
-# Demo Script (5 Minutes)
+# VoiceGuard AI - Demo Script (5 Minutes)
+
+> **Write 5-minute pitch script: Problem (30s), Solution (20s), Live Demo (90s), Tech Stack (45s), Impact (30s)**
+> Include which audio samples to use, expected confidence scores, and key talking points
 
 1. Problem (30s)
 2. Solution Overview (20s)

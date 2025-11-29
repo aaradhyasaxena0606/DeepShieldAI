@@ -1,3 +1,7 @@
+// VoiceGuard AI - Tailwind CSS Configuration
+// Extend Tailwind theme: Add custom colors (primary-blue: #3B82F6, danger-red: #EF4444, success-green: #10B981)
+// Configure content paths: ['./index.html', './src/**/*.{js,jsx}'] for purging unused CSS
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [

@@ -1,3 +1,8 @@
+// VoiceGuard AI - Landing Page (Frontend Lead - Person 3)
+// Create hero section: "Detect Deepfake Audio in Seconds" heading, tagline, CTA button "Try Now" → /analyze
+// Add stats section: "$25M lost to voice fraud", "3 seconds to clone voice", "90%+ detection accuracy"
+// Include features grid: Fast Detection, AI Explanations, Privacy-First, and call-to-action section
+
 import { Link } from 'react-router-dom'
 
 export default function LandingPage() {

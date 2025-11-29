@@ -1,3 +1,8 @@
+// VoiceGuard AI - Analysis Results Display Page
+// (Can be merged into AnalyzePage or separate) Display full analysis results with animations
+// Show: Large confidence gauge, fake/real badge, AI explanation in card, detected patterns list, recommendation alert box
+// Add "Analyze Another" button to reset and "Download Report" button (nice-to-have for Day 6-7)
+
 import { useLocation, Link } from 'react-router-dom'
 import DetectionBadge from '../components/DetectionBadge.jsx'
 import ConfidenceGauge from '../components/ConfidenceGauge.jsx'

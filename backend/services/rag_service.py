@@ -1,3 +1,10 @@
+# VoiceGuard AI - RAG (Retrieval-Augmented Generation) Service
+# get_explanation(prediction, confidence, features): Orchestrate RAG flow
+# 1. Call pattern_matcher.match_patterns(features) to detect indicators
+# 2. Call explainer.generate_explanation(prediction, confidence, patterns) to get Gemini response
+# 3. Get recommendation based on confidence level from knowledge_base.json
+# Return complete explanation object for API response
+
 import json, time
 from pathlib import Path
 

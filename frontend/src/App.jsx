@@ -1,3 +1,7 @@
+// VoiceGuard AI - Main App Component
+// Set up React Router with routes: "/" (LandingPage), "/analyze" (AnalyzePage), "/history" (HistoryPage), "/about" (AboutPage)
+// Render <Navbar /> at top, <Routes> in middle, <Footer /> at bottom with dark background layout
+
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Navbar from './components/Navbar.jsx'
 import Footer from './components/Footer.jsx'

@@ -1,3 +1,8 @@
+// VoiceGuard AI - Detection Result Badge Component
+// Display large badge component: "FAKE" in red background or "REAL" in blue background
+// Props: prediction ("fake"/"real"), confidence, confidenceLevel ("HIGH"/"MEDIUM"/"LOW")
+// Add pulsing animation for high confidence detections (>85%)
+
 export default function DetectionBadge({prediction, confidence}) {
   if (!prediction) return null
   const isFake = prediction === 'fake'

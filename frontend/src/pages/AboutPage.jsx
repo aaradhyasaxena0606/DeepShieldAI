@@ -1,3 +1,8 @@
+// VoiceGuard AI - About/Team Information Page
+// Display team members with photos/avatars and roles (Person 1-5), tech stack with logos
+// Embed architecture diagram, explain how VoiceGuard works in 3 steps, add hackathon disclaimer
+// Include "Built with Google Cloud" badge and GitHub repo link
+
 export default function AboutPage() {
   return (
     <div className="space-y-4 max-w-prose">

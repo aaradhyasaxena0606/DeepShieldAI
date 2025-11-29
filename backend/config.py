@@ -1,3 +1,8 @@
+# VoiceGuard AI Backend - Configuration Module
+# Load environment variables using dotenv: GOOGLE_CLOUD_PROJECT, MODEL_PATH, PORT
+# Define constants: SAMPLE_RATE=16000, MEL_SPEC_SHAPE=(128, 128), MAX_FILE_SIZE=10*1024*1024 (10MB)
+# Export settings class with validation using Pydantic
+
 from dotenv import load_dotenv
 import os
 

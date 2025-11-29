@@ -1,3 +1,7 @@
+// VoiceGuard AI - Animated Confidence Gauge Component
+// Render animated circular gauge using SVG or library (react-circular-progressbar)
+// Props: confidence (0-1), animate from 0 to confidence value over 1 second, color: blue if real, red if fake
+
 export default function ConfidenceGauge({confidence=0}) {
   const pct = Math.min(Math.max(confidence,0),1)
   const angle = pct * 180

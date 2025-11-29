@@ -1,3 +1,7 @@
+// VoiceGuard AI - Navigation Bar Component
+// Render horizontal nav: Logo (left), Links: Analyze, History, About (center), "Sign In" button (right, optional)
+// Make responsive: hamburger menu on mobile (<768px), smooth scroll to sections, highlight active route
+
 import { NavLink } from 'react-router-dom'
 
 const linkBase = 'text-sm font-medium px-3 py-2 rounded hover:bg-gray-800 transition-colors'
