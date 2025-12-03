@@ -18,3 +18,4 @@ class AnalysisResponse(BaseModel):
     detected_patterns: List[DetectedPattern]
     recommendation: str
     processing_time_ms: int
+    error_details: Optional[str] = None

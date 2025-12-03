@@ -1,20 +1,32 @@
 # VoiceGuard AI - Docker Compose Configuration
-# Define 3 services: frontend (nginx:alpine serving React build), backend (python:3.9 with FastAPI), ml-service (optional)
-# Set environment variables, expose ports (3000, 8000), mount volumes for models
+# Define 2 services: frontend (Node.js with React), backend (Python 3.9 with FastAPI)
+# Set environment variables, expose ports (5173, 8000), mount volumes for development
 
-version: '3.9'
 services:
   backend:
-    build: ./backend
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
     command: uvicorn main:app --host 0.0.0.0 --port 8000
     volumes:
-      - ./backend:/app
+      - ../backend:/app
+      - ../ml-service:/app/ml-service
     ports:
       - "8000:8000"
+    env_file:
+      - .env
+
   frontend:
-    build: ./frontend
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
     command: npm run dev -- --host
     volumes:
-      - ./frontend:/app
+      - ../frontend:/app
+      - /app/node_modules
     ports:
       - "5173:5173"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+    depends_on:
+      - backend

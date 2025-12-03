@@ -4,11 +4,18 @@
 // Spacing: p-6 cards, gap-3/4 consistent, min-h-[300px] drag zone
 // Animations: hover:scale-[1.02], transition-all duration-300
 
-import { useState, useRef } from 'react';
-import { Upload, CloudUpload, X, Sparkles, CheckCircle, AlertCircle } from 'lucide-react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import { Waveform } from './Waveform';
+import { useState, useRef } from "react";
+import {
+  Upload,
+  CloudUpload,
+  X,
+  Sparkles,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { Waveform } from "./Waveform";
 
 export function AudioUploader() {
   const [file, setFile] = useState(null);
@@ -20,14 +27,14 @@ export function AudioUploader() {
   const navigate = useNavigate();
 
   const validateFile = (file) => {
-    const validTypes = ['audio/wav', 'audio/mpeg', 'audio/mp3'];
+    const validTypes = ["audio/wav", "audio/mpeg", "audio/mp3"];
     const maxSize = 10 * 1024 * 1024; // 10MB
 
     if (!validTypes.includes(file.type)) {
-      return 'Invalid file format. Please upload WAV or MP3.';
+      return "Invalid file format. Please upload WAV or MP3.";
     }
     if (file.size > maxSize) {
-      return 'File too large. Maximum size is 10MB.';
+      return "File too large. Maximum size is 10MB.";
     }
     return null;
   };
@@ -56,36 +63,74 @@ export function AudioUploader() {
     setProgress(0);
 
     const progressInterval = setInterval(() => {
-      setProgress(prev => Math.min(prev + 10, 90));
+      setProgress((prev) => Math.min(prev + 10, 90));
     }, 200);
 
     try {
       const formData = new FormData();
-      formData.append('file', file);
-      const { data } = await axios.post(
-        import.meta.env.VITE_API_BASE_URL + '/analyze',
-        formData,
-        { headers: { 'Content-Type': 'multipart/form-data' } }
-      );
-      
+      formData.append("file", file);
+
+      // Fallback to default URL if environment variable is not set
+      const baseUrl =
+        import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+      const url = `${baseUrl}/analyze`;
+
+      const { data } = await axios.post(url, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
       clearInterval(progressInterval);
       setProgress(100);
-      
+
       // Save to history
-      const history = JSON.parse(localStorage.getItem('voiceguard_history') || '[]');
+      const history = JSON.parse(
+        localStorage.getItem("voiceguard_history") || "[]"
+      );
       history.unshift({
         ...data,
         filename: file.name,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
-      localStorage.setItem('voiceguard_history', JSON.stringify(history.slice(0, 50)));
-      
+      localStorage.setItem(
+        "voiceguard_history",
+        JSON.stringify(history.slice(0, 50))
+      );
+
       setTimeout(() => {
-        navigate('/result', { state: { data: { ...data, filename: file.name } } });
+        navigate("/result", {
+          state: { data: { ...data, filename: file.name } },
+        });
       }, 500);
     } catch (err) {
       clearInterval(progressInterval);
-      setError('Analysis failed. Please try again.');
+      console.error("Analysis error:", err);
+      // More detailed error messages
+      if (err.response) {
+        // Server responded with error status
+        if (err.response.status === 405) {
+          setError(
+            "Analysis failed: Method not allowed. Please contact support."
+          );
+        } else if (err.response.status === 503) {
+          setError(
+            "Analysis failed: Service unavailable. The ML model may not be loaded."
+          );
+        } else {
+          setError(
+            `Analysis failed: ${
+              err.response.data.detail || "Unknown server error"
+            }`
+          );
+        }
+      } else if (err.request) {
+        // Request was made but no response received
+        setError(
+          "Analysis failed: Cannot connect to server. Please ensure the backend is running."
+        );
+      } else {
+        // Something else happened
+        setError("Analysis failed. Please try again.");
+      }
       setLoading(false);
       setProgress(0);
     }
@@ -104,26 +149,37 @@ export function AudioUploader() {
       {!file ? (
         /* Drag & Drop Zone */
         <div
-          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragging(true);
+          }}
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
           className={`relative border-2 border-dashed rounded-2xl min-h-[300px] flex flex-col items-center justify-center cursor-pointer transition-all duration-300 ${
             isDragging
-              ? 'border-maroon-400 bg-maroon-600/10 scale-[1.02]'
-              : 'border-beige-200/30 hover:border-maroon-400 hover:bg-maroon-600/5'
+              ? "border-maroon-400 bg-maroon-600/10 scale-[1.02]"
+              : "border-beige-200/30 hover:border-maroon-400 hover:bg-maroon-600/5"
           }`}
         >
           <input
             ref={fileInputRef}
             type="file"
             accept="audio/wav,audio/mp3,audio/mpeg"
-            onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
+            onChange={(e) =>
+              e.target.files?.[0] && handleFile(e.target.files[0])
+            }
             className="hidden"
           />
-          <CloudUpload className={`w-16 h-16 mb-4 transition-colors ${isDragging ? 'text-maroon-400' : 'text-beige-300'}`} />
+          <CloudUpload
+            className={`w-16 h-16 mb-4 transition-colors ${
+              isDragging ? "text-maroon-400" : "text-beige-300"
+            }`}
+          />
           <h3 className="text-base font-semibold text-beige-100 mb-2">
-            {isDragging ? 'Drop your audio file' : 'Drag & drop your audio file'}
+            {isDragging
+              ? "Drop your audio file"
+              : "Drag & drop your audio file"}
           </h3>
           <p className="text-sm text-beige-300 mb-4">or click to browse</p>
           <div className="flex items-center gap-4 text-xs text-beige-300">
@@ -141,7 +197,9 @@ export function AudioUploader() {
                 <CheckCircle className="w-6 h-6 text-green-400" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-semibold text-beige-100 truncate">{file.name}</h3>
+                <h3 className="text-sm font-semibold text-beige-100 truncate">
+                  {file.name}
+                </h3>
                 <p className="text-xs text-beige-300 mt-1">
                   {(file.size / 1024 / 1024).toFixed(2)} MB
                 </p>
