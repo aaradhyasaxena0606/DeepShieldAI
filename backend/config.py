@@ -6,12 +6,17 @@
 from dotenv import load_dotenv
 import os
 
+# Load environment variables
 load_dotenv()
 
 class Settings:
-    PORT: int = int(os.getenv("PORT", "8000"))
-    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
-    GOOGLE_PROJECT_ID: str | None = os.getenv("GOOGLE_PROJECT_ID")
-    GOOGLE_LOCATION: str = os.getenv("GOOGLE_LOCATION", "us-central1")
+    PORT = int(os.getenv("PORT", "8000"))
+    # Use a model that's actually available in the API
+    GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+    # For Google AI Studio API (free tier)
+    GOOGLE_AI_STUDIO_KEY = os.getenv("GOOGLE_AI_STUDIO_KEY")
+    # Deprecated - for Vertex AI (paid)
+    GOOGLE_PROJECT_ID = os.getenv("GOOGLE_PROJECT_ID")
+    GOOGLE_LOCATION = os.getenv("GOOGLE_LOCATION", "us-central1")
 
 settings = Settings()

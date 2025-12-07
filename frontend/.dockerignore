@@ -1,0 +1,17 @@
+# VoiceGuard AI Frontend - Docker Ignore
+# Exclude unnecessary files from Docker build context
+
+node_modules
+npm-debug.log
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.pnpm-debug.log
+.DS_Store
+Thumbs.db
+.git
+build/
+dist/
+*.log
