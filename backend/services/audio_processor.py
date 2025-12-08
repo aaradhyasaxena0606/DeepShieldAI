@@ -6,7 +6,11 @@
 
 import io
 import numpy as np
-import librosa
+
+try:
+    import librosa
+except ImportError:
+    librosa = None
 
 TARGET_SR = 16000
 N_MELS = 128

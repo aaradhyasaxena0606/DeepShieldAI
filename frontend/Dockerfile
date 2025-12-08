@@ -1,5 +1,6 @@
 # VoiceGuard AI Frontend - Dockerfile
-FROM node:20-alpine
+## Use a Node 20.x slim image to satisfy package engine requirements
+FROM node:20.19.0-slim
 
 # Set working directory
 WORKDIR /app
@@ -7,8 +8,9 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci
+# Install dependencies. Use `npm install` in the container to avoid failing
+# the build if package.json and package-lock.json are out of sync.
+RUN npm install --no-audit --no-progress
 
 # Copy application code
 COPY . .

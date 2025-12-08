@@ -19,3 +19,8 @@ class AnalysisResponse(BaseModel):
     recommendation: str
     processing_time_ms: int
     error_details: Optional[str] = None
+    # Indicates whether the backend returned a placeholder prediction
+    # because the real ML model or TensorFlow was unavailable. When True,
+    # the client should treat confidence scores as non-production and
+    # optionally surface a warning to the user.
+    used_placeholder: Optional[bool] = False
