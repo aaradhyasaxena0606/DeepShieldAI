@@ -20,7 +20,7 @@ import { DetectionBadge } from "../components/DetectionBadge";
 import { useAuth } from "../contexts/AuthContext";
 import {
   getUserAnalyses,
-  subscribeToUserAnalyses,
+  subscribeToAllUserAnalyses,
   deleteAnalysis,
   deleteAllAnalyses,
 } from "../config/firestorePaths";
@@ -96,10 +96,9 @@ export default function HistoryPage() {
     setLoading(true);
 
     // Subscribe to Firestore analyses in realtime. This keeps the UI up-to-date
-    // whenever analyses are added/removed/updated in Firestore.
-    const unsubscribe = subscribeToUserAnalyses(
+    // whenever analyses are added/removed/updated in Firestore (both audio & video).
+    const unsubscribe = subscribeToAllUserAnalyses(
       currentUser.uid,
-      "audio",
       (analyses) => {
         setHistory(analyses);
         setError(null);
@@ -114,7 +113,7 @@ export default function HistoryPage() {
         console.error("Realtime subscription error:", err);
         setError("Failed to load analysis history. Please try again.");
         setLoading(false);
-        // fallback to one-time fetch
+        // fallback to one-time fetch (audio only for now)
         getUserAnalyses(currentUser.uid)
           .then((analyses) => setHistory(analyses))
           .catch((e) => console.error("Fallback getUserAnalyses failed:", e));
@@ -142,7 +141,9 @@ export default function HistoryPage() {
 
     try {
       if (currentUser) {
-        await deleteAllAnalyses(currentUser.uid);
+        // Delete both audio and video analyses
+        await deleteAllAnalyses(currentUser.uid, "audio");
+        await deleteAllAnalyses(currentUser.uid, "video");
       }
       // Also clear localStorage
       localStorage.removeItem("voiceguard_history");
@@ -160,11 +161,15 @@ export default function HistoryPage() {
     }
 
     try {
+      // Find the item to get its media type
+      const itemToDelete = history.find((item) => item.id === analysisId);
+      const mediaType = itemToDelete?.mediaType || "audio";
+
       // If analysisId is a string we assume it's a Firestore doc id and attempt
       // to delete it from Firestore. If it's a numeric index (fallback/local),
       // just remove it locally.
       if (currentUser && typeof analysisId === "string") {
-        await deleteAnalysis(currentUser.uid, analysisId);
+        await deleteAnalysis(currentUser.uid, analysisId, mediaType);
         // With realtime subscription, the state will update automatically when
         // Firestore confirms deletion. We can still optimistically update.
         setHistory((prev) => prev.filter((item) => item.id !== analysisId));
@@ -276,10 +281,15 @@ export default function HistoryPage() {
                           <FileAudio className="w-5 h-5 text-maroon-400" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-sm font-semibold text-beige-100 truncate">
-                            {item.filename || "Unknown File"}
-                          </h3>
-                          <div className="flex items-center gap-2 text-xs text-beige-300 mt-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="text-sm font-semibold text-beige-100 truncate">
+                              {item.filename || "Unknown File"}
+                            </h3>
+                            <span className="inline-block px-2 py-0.5 text-xs font-medium bg-maroon-600/30 text-maroon-300 rounded">
+                              {(item.mediaType || "audio").toUpperCase()}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-beige-300">
                             <Calendar className="w-3 h-3 flex-shrink-0" />
                             <span>
                               {item.createdAt

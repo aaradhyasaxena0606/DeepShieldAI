@@ -190,7 +190,7 @@ export const getUserAnalyses = async (userId, mediaType = "audio") => {
 };
 
 /**
- * Subscribe to user's analyses in realtime.
+ * Subscribe to user's analyses in realtime (single media type).
  * Calls onUpdate with the latest analyses array whenever the collection changes.
  * Returns an unsubscribe function.
  */
@@ -224,6 +224,77 @@ export const subscribeToUserAnalyses = (
     console.error("Error setting up analyses subscription:", error);
     if (onError) onError(error);
     // return a noop unsubscribe so callers can safely call it
+    return () => {};
+  }
+};
+
+/**
+ * Subscribe to ALL user's analyses (both audio and video) in realtime.
+ * Merges both collections, sorted by creation date (newest first).
+ * Calls onUpdate with the merged analyses array whenever either collection changes.
+ * Returns an unsubscribe function that stops both subscriptions.
+ */
+export const subscribeToAllUserAnalyses = (userId, onUpdate, onError) => {
+  try {
+    let audioAnalyses = [];
+    let videoAnalyses = [];
+
+    // Subscribe to audio analyses
+    const audioRef = analysisCollection(userId, "audio");
+    const audioQuery = query(audioRef, orderBy("createdAt", "desc"));
+    const unsubAudio = onSnapshot(
+      audioQuery,
+      (querySnapshot) => {
+        audioAnalyses = [];
+        querySnapshot.forEach((doc) => {
+          audioAnalyses.push({ id: doc.id, ...doc.data(), mediaType: "audio" });
+        });
+        // Merge and sort by createdAt (newest first)
+        const merged = [...audioAnalyses, ...videoAnalyses].sort((a, b) => {
+          const aTime = a.createdAt?.seconds || 0;
+          const bTime = b.createdAt?.seconds || 0;
+          return bTime - aTime;
+        });
+        onUpdate(merged);
+      },
+      (error) => {
+        console.error("Error in audio analyses subscription:", error);
+        if (onError) onError(error);
+      }
+    );
+
+    // Subscribe to video analyses
+    const videoRef = analysisCollection(userId, "video");
+    const videoQuery = query(videoRef, orderBy("createdAt", "desc"));
+    const unsubVideo = onSnapshot(
+      videoQuery,
+      (querySnapshot) => {
+        videoAnalyses = [];
+        querySnapshot.forEach((doc) => {
+          videoAnalyses.push({ id: doc.id, ...doc.data(), mediaType: "video" });
+        });
+        // Merge and sort by createdAt (newest first)
+        const merged = [...audioAnalyses, ...videoAnalyses].sort((a, b) => {
+          const aTime = a.createdAt?.seconds || 0;
+          const bTime = b.createdAt?.seconds || 0;
+          return bTime - aTime;
+        });
+        onUpdate(merged);
+      },
+      (error) => {
+        console.error("Error in video analyses subscription:", error);
+        if (onError) onError(error);
+      }
+    );
+
+    // Return a combined unsubscribe function
+    return () => {
+      unsubAudio();
+      unsubVideo();
+    };
+  } catch (error) {
+    console.error("Error setting up all analyses subscription:", error);
+    if (onError) onError(error);
     return () => {};
   }
 };
