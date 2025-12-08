@@ -67,12 +67,14 @@ export default function LoginPage() {
         <div className="max-w-md w-full space-y-8 animate-fade-in">
           {/* Header */}
           <div className="text-center">
-            <Link to="/" className="inline-flex items-center gap-2 mb-6">
-              <div className="p-2 bg-maroon-600/20 rounded-lg">
-                <Shield className="w-6 h-6 text-maroon-400" />
-              </div>
+            <Link to="/" className="inline-flex items-center gap-3 mb-6">
+              <img 
+                src="/logo.png" 
+                alt="VoiceGuard AI" 
+                className="w-10 h-10 object-contain rounded-lg"
+              />
               <span className="text-xl font-bold bg-gradient-to-r from-beige-100 via-beige-200 to-maroon-400 bg-clip-text text-transparent">
-                VoiceGuard
+                VoiceGuard AI
               </span>
             </Link>
             
@@ -172,7 +174,7 @@ export default function LoginPage() {
                 disabled={loading}
                 className="w-full px-6 py-3 bg-maroon-600 hover:bg-maroon-700 text-beige-50 font-semibold text-base rounded-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Signing In...' : 'Sign In'}
+                {loading ? 'Logging In...' : 'Login'}
               </button>
             </form>
           </div>
