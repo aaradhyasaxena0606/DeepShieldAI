@@ -23,12 +23,10 @@ from config import settings
 
 class ModelService:
     def __init__(self) -> None:
-        # Candidate paths (local dev and containerized /app path)
+        # Candidate paths for best_model.h5 (local dev and containerized /app path)
         candidate_paths = [
-            os.path.join(os.path.dirname(__file__), '..', 'ml-service', 'models', 'best_model.h5'),
+            os.path.join(os.path.dirname(__file__), '..', '..', 'ml-service', 'models', 'best_model.h5'),
             os.path.join('/app', 'ml-service', 'models', 'best_model.h5'),
-            os.path.join(os.path.dirname(__file__), '..', 'ml-service', 'trained_models', 'cnn_model.h5'),
-            os.path.join('/app', 'ml-service', 'trained_models', 'cnn_model.h5'),
         ]
 
         print("[ModelService] Starting model initialization...")
@@ -119,16 +117,50 @@ class ModelService:
         if mel_spectrogram is None:
             raise ValueError("Missing 'mel_spectrogram' in features for model prediction")
 
-        # Ensure correct shape for model input (128, 128)
-        if getattr(mel_spectrogram, 'shape', None) != (128, 128):
-            mel_spectrogram = np.resize(mel_spectrogram, (128, 128))
+        # Ensure correct shape for model input (128, 128, 3)
+        arr = np.asarray(mel_spectrogram, dtype=np.float32)
 
-        spectrogram_input = mel_spectrogram.reshape(1, 128, 128, 1)
+        # If 2D, replicate into 3 channels; if single-channel 3D, repeat to 3
+        if arr.ndim == 2:
+            arr = np.stack([arr, arr, arr], axis=-1)
+        elif arr.ndim == 3 and arr.shape[-1] == 1:
+            arr = np.repeat(arr, 3, axis=-1)
+
+        # Resize to 128x128 if needed (fallback; primary path should already be correct)
+        if arr.shape[0] != 128 or arr.shape[1] != 128:
+            arr = np.resize(arr, (128, 128, arr.shape[-1]))
+
+        # If more than 3 channels, take first 3 to match model
+        if arr.shape[-1] > 3:
+            arr = arr[..., :3]
+
+        # If fewer than 3 channels, pad by repeating last channel
+        if arr.shape[-1] < 3:
+            arr = np.repeat(arr, 3 // arr.shape[-1] + (1 if 3 % arr.shape[-1] else 0), axis=-1)[..., :3]
+
+        spectrogram_input = np.expand_dims(arr, axis=0)  # (1, 128, 128, 3)
 
         prediction = self.model.predict(spectrogram_input)
-        confidence = float(np.max(prediction))
-        label = 'fake' if int(np.argmax(prediction)) == 1 else 'real'
-        return label, confidence, prediction.tolist()
+
+        # Handle binary sigmoid (shape (1,1)) and softmax (shape (1,2))
+        pred = np.asarray(prediction)
+        if pred.ndim >= 2 and pred.shape[-1] == 1:
+            prob_real = float(pred.ravel()[0])
+            if prob_real >= 0.5:
+                label = 'real'
+                confidence = prob_real
+            else:
+                label = 'fake'
+                confidence = 1.0 - prob_real
+            probs = [1.0 - prob_real, prob_real]  # [fake, real]
+            return label, confidence, probs
+        else:
+            # Assume [fake, real] probabilities
+            probs = pred.flatten().tolist()
+            idx = int(np.argmax(pred))
+            label = 'fake' if idx == 1 else 'real'
+            confidence = float(np.max(pred))
+            return label, confidence, probs
 
     def _placeholder_predict(self, features: dict):
         """Simple deterministic placeholder used only when ALLOW_PLACEHOLDER=1.
