@@ -31,4 +31,4 @@ RUN mkdir -p /app/ml-service/models /app/ml-service/trained_models
 EXPOSE 8000
 
 # Run the application (reload removed for container stability; use docker volumes for dev)
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]
