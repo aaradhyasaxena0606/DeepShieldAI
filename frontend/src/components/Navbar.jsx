@@ -6,14 +6,14 @@
 // Spacing: h-16 header, px-4 py-2 links, gap-1/2
 // Animations: hover effects, mobile menu slideInLeft
 
-import { useState, useEffect } from 'react';
-import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { Shield, Menu, X, ArrowRight, LogOut, User } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { useState, useEffect } from "react";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
+import { Shield, Menu, X, ArrowRight, LogOut, User } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState('');
+  const [activeSection, setActiveSection] = useState("");
   const { currentUser, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -21,21 +21,21 @@ export default function Navbar() {
   const handleLogout = async () => {
     try {
       await logout();
-      navigate('/');
+      navigate("/");
     } catch (error) {
-      console.error('Failed to log out:', error);
+      console.error("Failed to log out:", error);
     }
   };
 
   // Track active section for hash links
   useEffect(() => {
     const handleScroll = () => {
-      const sections = ['stats', 'features'];
+      const sections = ["stats", "features"];
       const scrollPosition = window.scrollY + 100;
 
       // Check if we're in the hero section (top of page)
       if (scrollPosition < 200) {
-        setActiveSection('home');
+        setActiveSection("home");
         return;
       }
 
@@ -43,66 +43,69 @@ export default function Navbar() {
         const element = document.getElementById(section);
         if (element) {
           const { offsetTop, offsetHeight } = element;
-          if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
+          if (
+            scrollPosition >= offsetTop &&
+            scrollPosition < offsetTop + offsetHeight
+          ) {
             setActiveSection(section);
             return;
           }
         }
       }
-      setActiveSection('');
+      setActiveSection("");
     };
 
-    if (location.pathname === '/') {
-      window.addEventListener('scroll', handleScroll);
+    if (location.pathname === "/") {
+      window.addEventListener("scroll", handleScroll);
       handleScroll();
-      return () => window.removeEventListener('scroll', handleScroll);
+      return () => window.removeEventListener("scroll", handleScroll);
     } else {
-      setActiveSection('');
+      setActiveSection("");
     }
   }, [location.pathname]);
 
   const publicLinks = [
-    { to: '/', label: 'Home', exact: true, section: 'home' },
-    { to: '/#stats', label: 'Stats', isHash: true, section: 'stats' },
-    { to: '/#features', label: 'Features', isHash: true, section: 'features' },
-    { to: '/about', label: 'About', exact: false }
+    { to: "/", label: "Home", exact: true, section: "home" },
+    { to: "/#stats", label: "Stats", isHash: true, section: "stats" },
+    { to: "/#features", label: "Features", isHash: true, section: "features" },
+    { to: "/about", label: "About", exact: false },
   ];
 
   const authenticatedLinks = [
-    { to: '/home', label: 'Dashboard' },
-    { to: '/history', label: 'History' },
-    { to: '/about', label: 'About' }
+    { to: "/home", label: "Dashboard" },
+    { to: "/history", label: "History" },
+    { to: "/about", label: "About" },
   ];
 
   const links = isAuthenticated ? authenticatedLinks : publicLinks;
 
   const handleHashClick = (e, href, section) => {
     e.preventDefault();
-    if (location.pathname !== '/') {
-      navigate('/');
+    if (location.pathname !== "/") {
+      navigate("/");
       setTimeout(() => {
         const element = document.getElementById(section);
         if (element) {
-          element.scrollIntoView({ behavior: 'smooth' });
+          element.scrollIntoView({ behavior: "smooth" });
         }
       }, 100);
     } else {
       const element = document.getElementById(section);
       if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
+        element.scrollIntoView({ behavior: "smooth" });
       }
     }
   };
 
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-xl bg-black/60 border-b border-beige-200/10 shadow-lg shadow-black/20 font-sans">
+    <header className="hidden md:block sticky top-0 z-50 backdrop-blur-xl bg-black/60 border-b border-beige-200/10 shadow-lg shadow-black/20 font-sans">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <NavLink to="/" className="flex items-center gap-3 group">
-            <img 
-              src="/logo.png" 
-              alt="VoiceGuard AI" 
+            <img
+              src="/logo.png"
+              alt="VoiceGuard AI"
               className="w-10 h-10 object-contain rounded-lg group-hover:scale-110 transition-transform duration-300"
             />
             <span className="text-xl font-bold bg-gradient-to-r from-beige-100 to-maroon-400 bg-clip-text text-transparent">
@@ -112,41 +115,42 @@ export default function Navbar() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-1">
-            {links.map((link) => (
+            {links.map((link) =>
               link.isHash ? (
                 <a
                   key={link.to}
                   href={link.to}
                   onClick={(e) => handleHashClick(e, link.to, link.section)}
                   className={`relative px-4 py-2 text-sm font-medium transition-colors ${
-                    activeSection === link.section && location.pathname === '/'
-                      ? 'text-beige-100'
-                      : 'text-beige-200 hover:text-beige-100'
+                    activeSection === link.section && location.pathname === "/"
+                      ? "text-beige-100"
+                      : "text-beige-200 hover:text-beige-100"
                   }`}
                 >
                   {link.label}
-                  {activeSection === link.section && location.pathname === '/' && (
-                    <span className="absolute bottom-0 left-0 right-0 h-1 bg-maroon-500 rounded-t-full" />
-                  )}
+                  {activeSection === link.section &&
+                    location.pathname === "/" && (
+                      <span className="absolute bottom-0 left-0 right-0 h-1 bg-maroon-500 rounded-t-full" />
+                    )}
                 </a>
-              ) : link.to === '/' ? (
+              ) : link.to === "/" ? (
                 <a
                   key={link.to}
                   href={link.to}
                   onClick={(e) => {
-                    if (location.pathname === '/') {
+                    if (location.pathname === "/") {
                       e.preventDefault();
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                      window.scrollTo({ top: 0, behavior: "smooth" });
                     }
                   }}
                   className={`relative px-4 py-2 text-sm font-medium transition-colors ${
-                    activeSection === 'home' && location.pathname === '/'
-                      ? 'text-beige-100'
-                      : 'text-beige-200 hover:text-beige-100'
+                    activeSection === "home" && location.pathname === "/"
+                      ? "text-beige-100"
+                      : "text-beige-200 hover:text-beige-100"
                   }`}
                 >
                   {link.label}
-                  {activeSection === 'home' && location.pathname === '/' && (
+                  {activeSection === "home" && location.pathname === "/" && (
                     <span className="absolute bottom-0 left-0 right-0 h-1 bg-maroon-500 rounded-t-full" />
                   )}
                 </a>
@@ -157,7 +161,9 @@ export default function Navbar() {
                   end={link.exact}
                   className={({ isActive }) =>
                     `relative px-4 py-2 text-sm font-medium transition-colors ${
-                      isActive ? 'text-beige-100' : 'text-beige-200 hover:text-beige-100'
+                      isActive
+                        ? "text-beige-100"
+                        : "text-beige-200 hover:text-beige-100"
                     }`
                   }
                 >
@@ -171,7 +177,7 @@ export default function Navbar() {
                   )}
                 </NavLink>
               )
-            ))}
+            )}
           </div>
 
           {/* Right Side Actions - Desktop */}
@@ -185,10 +191,12 @@ export default function Navbar() {
                 >
                   <User className="w-4 h-4 text-maroon-400" />
                   <span className="text-sm text-beige-100">
-                    {currentUser?.displayName || currentUser?.email?.split('@')[0] || 'User'}
+                    {currentUser?.displayName ||
+                      currentUser?.email?.split("@")[0] ||
+                      "User"}
                   </span>
                 </NavLink>
-                
+
                 {/* Logout Button */}
                 <button
                   onClick={handleLogout}
@@ -207,7 +215,7 @@ export default function Navbar() {
                 >
                   Login
                 </NavLink>
-                
+
                 {/* Signup Button */}
                 <NavLink
                   to="/signup"
@@ -239,7 +247,7 @@ export default function Navbar() {
       {mobileMenuOpen && (
         <div className="md:hidden fixed inset-0 top-16 z-40 bg-black/95 backdrop-blur-xl">
           <div className="flex flex-col items-center justify-center h-full gap-2 px-6">
-            {links.map((link, idx) => (
+            {links.map((link, idx) =>
               link.isHash ? (
                 <a
                   key={link.to}
@@ -249,34 +257,38 @@ export default function Navbar() {
                     setMobileMenuOpen(false);
                   }}
                   className={`text-xl font-semibold transition-all ${
-                    activeSection === link.section && location.pathname === '/'
-                      ? 'text-maroon-400'
-                      : 'text-beige-200 hover:text-beige-100'
+                    activeSection === link.section && location.pathname === "/"
+                      ? "text-maroon-400"
+                      : "text-beige-200 hover:text-beige-100"
                   }`}
                   style={{
-                    animation: `slideInLeft 0.6s ease-out ${idx * 0.1}s backwards`
+                    animation: `slideInLeft 0.6s ease-out ${
+                      idx * 0.1
+                    }s backwards`,
                   }}
                 >
                   {link.label}
                 </a>
-              ) : link.to === '/' ? (
+              ) : link.to === "/" ? (
                 <a
                   key={link.to}
                   href={link.to}
                   onClick={(e) => {
-                    if (location.pathname === '/') {
+                    if (location.pathname === "/") {
                       e.preventDefault();
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                      window.scrollTo({ top: 0, behavior: "smooth" });
                     }
                     setMobileMenuOpen(false);
                   }}
                   className={`text-xl font-semibold transition-all ${
-                    activeSection === 'home' && location.pathname === '/'
-                      ? 'text-maroon-400'
-                      : 'text-beige-200 hover:text-beige-100'
+                    activeSection === "home" && location.pathname === "/"
+                      ? "text-maroon-400"
+                      : "text-beige-200 hover:text-beige-100"
                   }`}
                   style={{
-                    animation: `slideInLeft 0.6s ease-out ${idx * 0.1}s backwards`
+                    animation: `slideInLeft 0.6s ease-out ${
+                      idx * 0.1
+                    }s backwards`,
                   }}
                 >
                   {link.label}
@@ -289,18 +301,22 @@ export default function Navbar() {
                   onClick={() => setMobileMenuOpen(false)}
                   className={({ isActive }) =>
                     `text-xl font-semibold transition-all ${
-                      isActive ? 'text-maroon-400' : 'text-beige-200 hover:text-beige-100'
+                      isActive
+                        ? "text-maroon-400"
+                        : "text-beige-200 hover:text-beige-100"
                     }`
                   }
                   style={{
-                    animation: `slideInLeft 0.6s ease-out ${idx * 0.1}s backwards`
+                    animation: `slideInLeft 0.6s ease-out ${
+                      idx * 0.1
+                    }s backwards`,
                   }}
                 >
                   {link.label}
                 </NavLink>
               )
-            ))}
-            
+            )}
+
             {isAuthenticated ? (
               <>
                 {/* User Info Mobile - Clickable to Profile */}
@@ -308,7 +324,9 @@ export default function Navbar() {
                   to="/profile"
                   onClick={() => setMobileMenuOpen(false)}
                   className="mt-6 flex flex-col items-center gap-2 px-6 py-4 bg-black/40 hover:bg-black/60 backdrop-blur-lg border border-beige-200/20 hover:border-beige-200/30 rounded-xl transition-all"
-                  style={{ animation: 'slideInLeft 0.6s ease-out 0.3s backwards' }}
+                  style={{
+                    animation: "slideInLeft 0.6s ease-out 0.3s backwards",
+                  }}
                 >
                   <User className="w-6 h-6 text-maroon-400" />
                   <div className="text-center">
@@ -318,7 +336,7 @@ export default function Navbar() {
                     </p>
                   </div>
                 </NavLink>
-                
+
                 {/* Logout Button Mobile */}
                 <button
                   onClick={() => {
@@ -326,7 +344,9 @@ export default function Navbar() {
                     setMobileMenuOpen(false);
                   }}
                   className="mt-4 flex items-center gap-2 px-8 py-4 bg-maroon-600/20 hover:bg-maroon-600/30 text-maroon-300 border border-maroon-400/30 rounded-xl transition-all"
-                  style={{ animation: 'slideInLeft 0.6s ease-out 0.4s backwards' }}
+                  style={{
+                    animation: "slideInLeft 0.6s ease-out 0.4s backwards",
+                  }}
                 >
                   <LogOut className="w-5 h-5" />
                   Sign Out
@@ -339,17 +359,21 @@ export default function Navbar() {
                   to="/login"
                   onClick={() => setMobileMenuOpen(false)}
                   className="mt-6 px-8 py-4 bg-black/40 backdrop-blur-lg hover:bg-black/60 text-beige-100 font-semibold text-base rounded-xl border border-beige-200/20 transition-all"
-                  style={{ animation: 'slideInLeft 0.6s ease-out 0.3s backwards' }}
+                  style={{
+                    animation: "slideInLeft 0.6s ease-out 0.3s backwards",
+                  }}
                 >
                   Sign In
                 </NavLink>
-                
+
                 {/* Signup Button Mobile */}
                 <NavLink
                   to="/signup"
                   onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center gap-2 px-8 py-4 bg-maroon-600 hover:bg-maroon-700 text-beige-50 font-semibold text-base rounded-xl transition-all"
-                  style={{ animation: 'slideInLeft 0.6s ease-out 0.4s backwards' }}
+                  style={{
+                    animation: "slideInLeft 0.6s ease-out 0.4s backwards",
+                  }}
                 >
                   Get Started
                   <ArrowRight className="w-5 h-5" />

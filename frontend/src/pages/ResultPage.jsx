@@ -18,6 +18,7 @@ import {
 import { DetectionBadge } from "../components/DetectionBadge";
 import { ConfidenceGauge } from "../components/ConfidenceGauge";
 import Iridescence from "../ui/Iridescence";
+import jsPDF from "jspdf";
 
 function AlertBox({ variant = "info", title, description }) {
   const config = {
@@ -78,6 +79,259 @@ export default function ResultPage() {
   const { state } = useLocation();
   const data = state?.data;
   const usedPlaceholder = data?.used_placeholder || false;
+
+  const handleDownloadReport = () => {
+    try {
+      const reportData = generateReportData(
+        data,
+        isFake,
+        confidence,
+        confidenceLevel
+      );
+      generatePDFReport(reportData);
+    } catch (error) {
+      console.error("Error downloading report:", error);
+      alert("Failed to generate report. Please try again.");
+    }
+  };
+
+  const generatePDFReport = (reportData) => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 20;
+    const maxWidth = pageWidth - 2 * margin;
+    let yPos = 20;
+
+    // Helper function to check if we need a new page
+    const checkPageBreak = (requiredSpace = 10) => {
+      if (yPos + requiredSpace > pageHeight - margin) {
+        doc.addPage();
+        yPos = 20;
+        return true;
+      }
+      return false;
+    };
+
+    // Helper function to add wrapped text
+    const addText = (text, fontSize, isBold = false, color = [0, 0, 0]) => {
+      doc.setFontSize(fontSize);
+      doc.setFont("helvetica", isBold ? "bold" : "normal");
+      doc.setTextColor(...color);
+      const lines = doc.splitTextToSize(text, maxWidth);
+      lines.forEach((line) => {
+        checkPageBreak();
+        doc.text(line, margin, yPos);
+        yPos += fontSize * 0.5;
+      });
+    };
+
+    // Header with colored background
+    doc.setFillColor(139, 69, 19); // Brown/maroon color
+    doc.rect(0, 0, pageWidth, 40, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(20);
+    doc.setFont("helvetica", "bold");
+    doc.text("VoiceGuard AI", pageWidth / 2, 15, { align: "center" });
+    doc.setFontSize(14);
+    doc.text("Audio Analysis Report", pageWidth / 2, 25, { align: "center" });
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(reportData.header.generatedAt, pageWidth / 2, 33, {
+      align: "center",
+    });
+
+    yPos = 50;
+
+    // File Information
+    addText("File Information", 12, true, [139, 69, 19]);
+    yPos += 2;
+    doc.setDrawColor(139, 69, 19);
+    doc.line(margin, yPos, pageWidth - margin, yPos);
+    yPos += 8;
+    addText(`Filename: ${reportData.header.filename}`, 10);
+    yPos += 8;
+
+    // Detection Result Box
+    checkPageBreak(35);
+    const isFake = reportData.detection.result.includes("FAKE");
+    const boxColor = isFake ? [220, 38, 38] : [34, 197, 94]; // Red or Green
+    doc.setFillColor(...boxColor, 0.1);
+    doc.setDrawColor(...boxColor);
+    doc.roundedRect(margin, yPos, maxWidth, 30, 3, 3, "FD");
+
+    doc.setTextColor(...boxColor);
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("Detection Result", margin + 5, yPos + 8);
+    doc.setFontSize(18);
+    doc.text(reportData.detection.result, margin + 5, yPos + 18);
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    doc.text(
+      `Confidence: ${reportData.detection.confidence} (${reportData.detection.confidenceLevel})`,
+      margin + 5,
+      yPos + 26
+    );
+
+    yPos += 38;
+
+    // Placeholder Warning
+    if (reportData.detection.usedPlaceholder) {
+      checkPageBreak(15);
+      doc.setFillColor(251, 191, 36, 0.2);
+      doc.setDrawColor(251, 191, 36);
+      doc.roundedRect(margin, yPos, maxWidth, 12, 2, 2, "FD");
+      doc.setTextColor(180, 83, 9);
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "bold");
+      doc.text(
+        "⚠ WARNING: Placeholder prediction (model not loaded)",
+        margin + 3,
+        yPos + 8
+      );
+      yPos += 18;
+    }
+
+    // AI Explanation Section
+    checkPageBreak(20);
+    doc.setTextColor(0, 0, 0);
+    addText("AI Explanation", 12, true, [139, 69, 19]);
+    yPos += 2;
+    doc.setDrawColor(139, 69, 19);
+    doc.line(margin, yPos, pageWidth - margin, yPos);
+    yPos += 8;
+    doc.setTextColor(60, 60, 60);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "italic");
+    doc.text("Powered by Google Gemini", margin, yPos);
+    yPos += 6;
+    doc.setTextColor(0, 0, 0);
+    doc.setFont("helvetica", "normal");
+    addText(reportData.analysis.aiExplanation, 10);
+    yPos += 5;
+
+    // Detected Patterns
+    if (reportData.analysis.detectedPatterns.length > 0) {
+      checkPageBreak(20);
+      addText("Detected Patterns", 12, true, [139, 69, 19]);
+      yPos += 2;
+      doc.setDrawColor(139, 69, 19);
+      doc.line(margin, yPos, pageWidth - margin, yPos);
+      yPos += 8;
+
+      reportData.analysis.detectedPatterns.forEach((pattern, idx) => {
+        checkPageBreak();
+        doc.setTextColor(180, 83, 9);
+        doc.setFontSize(10);
+        doc.text(`• ${pattern.name || pattern}`, margin + 5, yPos);
+        yPos += 6;
+      });
+      yPos += 5;
+    }
+
+    // Recommendation
+    checkPageBreak(20);
+    doc.setTextColor(0, 0, 0);
+    addText("Recommendation", 12, true, [139, 69, 19]);
+    yPos += 2;
+    doc.setDrawColor(139, 69, 19);
+    doc.line(margin, yPos, pageWidth - margin, yPos);
+    yPos += 8;
+    addText(reportData.recommendation, 10);
+    yPos += 5;
+
+    // What This Means (for high confidence fake)
+    if (isFake && reportData.detection.confidenceLevel === "HIGH") {
+      checkPageBreak(40);
+      addText("What This Means", 12, true, [139, 69, 19]);
+      yPos += 2;
+      doc.setDrawColor(139, 69, 19);
+      doc.line(margin, yPos, pageWidth - margin, yPos);
+      yPos += 8;
+
+      const warnings = [
+        "This audio likely contains AI-generated or manipulated voice content",
+        "Do not rely on this audio for authentication or verification purposes",
+        "Contact the claimed speaker through verified channels to confirm authenticity",
+        "Be cautious of any requests for money, information, or actions based on this audio",
+      ];
+
+      warnings.forEach((warning) => {
+        checkPageBreak(10);
+        doc.setTextColor(220, 38, 38);
+        doc.setFontSize(10);
+        const lines = doc.splitTextToSize(`• ${warning}`, maxWidth - 10);
+        lines.forEach((line) => {
+          doc.text(line, margin + 5, yPos);
+          yPos += 5;
+        });
+      });
+      yPos += 5;
+    }
+
+    // Error Details
+    if (reportData.analysis.errorDetails) {
+      checkPageBreak(20);
+      addText("Error Details", 12, true, [220, 38, 38]);
+      yPos += 2;
+      doc.setDrawColor(220, 38, 38);
+      doc.line(margin, yPos, pageWidth - margin, yPos);
+      yPos += 8;
+      doc.setTextColor(180, 83, 9);
+      addText(reportData.analysis.errorDetails, 9);
+      yPos += 5;
+    }
+
+    // Footer on last page
+    const lastPageNum = doc.internal.pages.length - 1;
+    doc.setPage(lastPageNum);
+    doc.setFillColor(139, 69, 19);
+    doc.rect(0, pageHeight - 25, pageWidth, 25, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text(
+      "This report was generated by VoiceGuard AI",
+      pageWidth / 2,
+      pageHeight - 15,
+      { align: "center" }
+    );
+    doc.text(
+      "For more information, visit: https://voiceguard.ai",
+      pageWidth / 2,
+      pageHeight - 8,
+      { align: "center" }
+    );
+
+    // Save the PDF
+    const filename = `VoiceGuard-Report-${
+      new Date().toISOString().split("T")[0]
+    }.pdf`;
+    doc.save(filename);
+  };
+
+  const generateReportData = (data, isFake, confidence, confidenceLevel) => {
+    return {
+      header: {
+        title: "VoiceGuard AI - Audio Analysis Report",
+        generatedAt: new Date().toLocaleString(),
+        filename: data.filename || "Unknown",
+      },
+      detection: {
+        result: isFake ? "FAKE (AI-Generated)" : "REAL (Authentic)",
+        confidence: `${(confidence * 100).toFixed(2)}%`,
+        confidenceLevel: confidenceLevel,
+        usedPlaceholder: usedPlaceholder,
+      },
+      analysis: {
+        aiExplanation: data.ai_explanation || "No explanation available.",
+        detectedPatterns: data.detected_patterns || [],
+        errorDetails: data.error_details || null,
+      },
+      recommendation: getRecommendationText(),
+    };
+  };
 
   if (!data) {
     return (
@@ -373,10 +627,7 @@ export default function ResultPage() {
             </Link>
 
             <button
-              onClick={() => {
-                console.log("Download report for:", data);
-                alert("Download report feature coming soon!");
-              }}
+              onClick={handleDownloadReport}
               className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-black/40 backdrop-blur-lg hover:bg-black/60 text-beige-100 font-semibold text-base rounded-xl border border-beige-200/20 transition-all duration-300 hover:scale-105"
             >
               <Download className="w-5 h-5" />
