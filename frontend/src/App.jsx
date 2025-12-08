@@ -23,6 +23,7 @@ import AboutPage from './pages/AboutPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import SignupPage from './pages/SignupPage.jsx'
 import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx'
+import Profile from './pages/Profile.jsx'
 
 function App() {
   return (
@@ -41,15 +42,65 @@ function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-              
+
               {/* Protected Routes */}
-              <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-              <Route path="/analyze" element={<ProtectedRoute><AnalyzePage /></ProtectedRoute>} />
-              <Route path="/analyze-video" element={<ProtectedRoute><AnalyzeVideoPage /></ProtectedRoute>} />
-              <Route path="/analyze-live" element={<ProtectedRoute><AnalyzeLivePage /></ProtectedRoute>} />
-              <Route path="/result" element={<ProtectedRoute><ResultPage /></ProtectedRoute>} />
-              <Route path="/history" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
-              
+              <Route
+                path="/home"
+                element={
+                  <ProtectedRoute>
+                    <HomePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/analyze"
+                element={
+                  <ProtectedRoute>
+                    <AnalyzePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/analyze-video"
+                element={
+                  <ProtectedRoute>
+                    <AnalyzeVideoPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/analyze-live"
+                element={
+                  <ProtectedRoute>
+                    <AnalyzeLivePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/result"
+                element={
+                  <ProtectedRoute>
+                    <ResultPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/history"
+                element={
+                  <ProtectedRoute>
+                    <HistoryPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                }
+              />
+
               {/* Catch all - redirect to home */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
@@ -59,7 +110,7 @@ function App() {
         </LiveMonitorProvider>
       </AuthProvider>
     </BrowserRouter>
-  )
+  );
 }
 
-export default App
+export default App;
