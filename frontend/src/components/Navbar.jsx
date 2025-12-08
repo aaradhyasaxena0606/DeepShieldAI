@@ -178,13 +178,16 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-2">
             {isAuthenticated ? (
               <>
-                {/* User Info */}
-                <div className="flex items-center gap-2 px-3 py-2 bg-black/40 backdrop-blur-lg border border-beige-200/20 rounded-xl">
+                {/* User Info - Clickable to Profile */}
+                <NavLink
+                  to="/profile"
+                  className="flex items-center gap-2 px-3 py-2 bg-black/40 hover:bg-black/60 backdrop-blur-lg border border-beige-200/20 hover:border-beige-200/30 rounded-xl transition-all duration-300"
+                >
                   <User className="w-4 h-4 text-maroon-400" />
                   <span className="text-sm text-beige-100">
                     {currentUser?.displayName || currentUser?.email?.split('@')[0] || 'User'}
                   </span>
-                </div>
+                </NavLink>
                 
                 {/* Logout Button */}
                 <button
@@ -300,13 +303,21 @@ export default function Navbar() {
             
             {isAuthenticated ? (
               <>
-                {/* User Info Mobile */}
-                <div className="mt-6 text-center" style={{ animation: 'slideInLeft 0.6s ease-out 0.3s backwards' }}>
-                  <p className="text-sm text-beige-300 mb-2">Signed in as</p>
-                  <p className="text-base text-beige-100 font-semibold">
-                    {currentUser?.displayName || currentUser?.email}
-                  </p>
-                </div>
+                {/* User Info Mobile - Clickable to Profile */}
+                <NavLink
+                  to="/profile"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="mt-6 flex flex-col items-center gap-2 px-6 py-4 bg-black/40 hover:bg-black/60 backdrop-blur-lg border border-beige-200/20 hover:border-beige-200/30 rounded-xl transition-all"
+                  style={{ animation: 'slideInLeft 0.6s ease-out 0.3s backwards' }}
+                >
+                  <User className="w-6 h-6 text-maroon-400" />
+                  <div className="text-center">
+                    <p className="text-xs text-beige-300 mb-1">Signed in as</p>
+                    <p className="text-base text-beige-100 font-semibold">
+                      {currentUser?.displayName || currentUser?.email}
+                    </p>
+                  </div>
+                </NavLink>
                 
                 {/* Logout Button Mobile */}
                 <button
