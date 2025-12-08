@@ -7,72 +7,93 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
 import { Video, Upload, AlertCircle, Shield, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 import Iridescence from '../ui/Iridescence';
 
 export default function AnalyzeVideoPage() {
   const navigate = useNavigate();
   const [videoFile, setVideoFile] = useState(null);
   const [videoName, setVideoName] = useState('');
-  const [audioBlob, setAudioBlob] = useState(null);
-  const [extracting, setExtracting] = useState(false);
-  const [error, setError] = useState('');
   const [analyzing, setAnalyzing] = useState(false);
-
-  const sendAudioForAnalysis = async () => {
-    if (!audioBlob) return;
-    setAnalyzing(true);
-    setError('');
-    try {
-      const formData = new FormData();
-      formData.append('file', audioBlob, 'audio.mp3');
-      const response = await fetch('/analyze', {
-        method: 'POST',
-        body: formData,
-      });
-      if (!response.ok) {
-        throw new Error('Analysis failed');
-      }
-      const result = await response.json();
-      navigate('/result', { state: { data: result } });
-    } catch (err) {
-      setError('Audio analysis failed.');
-    }
-    setAnalyzing(false);
-  };
-
-  const ffmpeg = createFFmpeg({ log: true });
+  const [progress, setProgress] = useState(0);
+  const [error, setError] = useState('');
 
   const handleVideoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Validate file size (max 50MB)
+      const maxSize = 50 * 1024 * 1024;
+      if (file.size > maxSize) {
+        setError('File too large. Maximum size is 50MB.');
+        return;
+      }
       setVideoFile(file);
       setVideoName(file.name);
-      setAudioBlob(null);
       setError('');
     }
   };
 
-  const extractAudio = async () => {
+  const analyzeVideo = async () => {
     if (!videoFile) return;
-    setExtracting(true);
+    setAnalyzing(true);
+    setProgress(0);
     setError('');
+
+    const progressInterval = setInterval(() => {
+      setProgress((prev) => Math.min(prev + 5, 90));
+    }, 500);
+
     try {
-      if (!ffmpeg.isLoaded()) {
-        await ffmpeg.load();
-      }
-      ffmpeg.FS('writeFile', videoName, await fetchFile(videoFile));
-      await ffmpeg.run('-i', videoName, '-vn', '-acodec', 'mp3', 'output.mp3');
-      const data = ffmpeg.FS('readFile', 'output.mp3');
-      const audio = new Blob([data.buffer], { type: 'audio/mp3' });
-      setAudioBlob(audio);
+      const formData = new FormData();
+      formData.append('file', videoFile);
+
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+      const { data } = await axios.post(`${baseUrl}/analyze-video`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      clearInterval(progressInterval);
+      setProgress(100);
+
+      // Save to history
+      const history = JSON.parse(localStorage.getItem('voiceguard_history') || '[]');
+      history.unshift({
+        ...data,
+        filename: videoFile.name,
+        timestamp: new Date().toISOString(),
+      });
+      localStorage.setItem('voiceguard_history', JSON.stringify(history.slice(0, 50)));
+
+      setTimeout(() => {
+        navigate('/result', {
+          state: { data: { ...data, filename: videoFile.name } },
+        });
+      }, 500);
     } catch (err) {
-      setError('Audio extraction failed.');
+      clearInterval(progressInterval);
+      console.error('Video analysis error:', err);
+      
+      if (err.response) {
+        if (err.response.status === 400) {
+          setError(`Invalid file: ${err.response.data.detail || 'Please upload a valid video file.'}`);
+        } else if (err.response.status === 503) {
+          setError('Analysis service unavailable. The ML model may not be loaded.');
+        } else {
+          setError(`Analysis failed: ${err.response.data.detail || 'Unknown server error'}`);
+        }
+      } else if (err.request) {
+        setError('Cannot connect to server. Please ensure the backend is running.');
+      } else {
+        setError('Analysis failed. Please try again.');
+      }
+      setAnalyzing(false);
+      setProgress(0);
     }
-    setExtracting(false);
   };
+
+  return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-maroon-900 via-brown-900 to-black">
       {/* Iridescent Background */}
       <div className="absolute inset-0 z-0">
@@ -145,12 +166,6 @@ export default function AnalyzeVideoPage() {
                   {analyzing ? 'Analyzing...' : 'Analyze Audio'}
                 </button>
               </>
-            )}
-            {analysisResult && (
-              <div className="mt-4 p-4 bg-black/30 rounded-lg text-beige-100">
-                <div className="font-bold mb-2">Analysis Result</div>
-                <pre className="text-xs whitespace-pre-wrap">{JSON.stringify(analysisResult, null, 2)}</pre>
-              </div>
             )}
             {error && (
               <div className="text-xs text-red-400 mt-2">{error}</div>
