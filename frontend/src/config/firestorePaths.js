@@ -11,6 +11,7 @@ import {
   orderBy,
   serverTimestamp,
   increment,
+  onSnapshot,
 } from "firebase/firestore";
 import {
   userDocRef,
@@ -185,6 +186,45 @@ export const getUserAnalyses = async (userId, mediaType = "audio") => {
   } catch (error) {
     console.error("Error getting analyses:", error);
     throw error;
+  }
+};
+
+/**
+ * Subscribe to user's analyses in realtime.
+ * Calls onUpdate with the latest analyses array whenever the collection changes.
+ * Returns an unsubscribe function.
+ */
+export const subscribeToUserAnalyses = (
+  userId,
+  mediaType = "audio",
+  onUpdate,
+  onError
+) => {
+  try {
+    const analysesRef = analysisCollection(userId, mediaType);
+    const q = query(analysesRef, orderBy("createdAt", "desc"));
+
+    const unsubscribe = onSnapshot(
+      q,
+      (querySnapshot) => {
+        const analyses = [];
+        querySnapshot.forEach((doc) => {
+          analyses.push({ id: doc.id, ...doc.data() });
+        });
+        onUpdate(analyses);
+      },
+      (error) => {
+        console.error("Error in analyses subscription:", error);
+        if (onError) onError(error);
+      }
+    );
+
+    return unsubscribe;
+  } catch (error) {
+    console.error("Error setting up analyses subscription:", error);
+    if (onError) onError(error);
+    // return a noop unsubscribe so callers can safely call it
+    return () => {};
   }
 };
 
