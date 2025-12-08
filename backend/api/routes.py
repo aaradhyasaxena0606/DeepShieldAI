@@ -59,7 +59,12 @@ async def analyze(file: UploadFile = File(...)):
         
         print("[Analyze] Extracting audio features...")
         features = extract_features(data)
-        print(f"[Analyze] Features extracted successfully")
+        mel = features.get('mel_spectrogram')
+        try:
+            shape = getattr(mel, 'shape', None)
+            print(f"[Analyze] Features extracted successfully. mel_spectrogram shape: {shape}")
+        except Exception:
+            print("[Analyze] Features extracted successfully. mel_spectrogram shape: unknown")
 
         print("[Analyze] Running model prediction...")
         prediction_label, confidence, raw_vector = model_service.predict(features)
