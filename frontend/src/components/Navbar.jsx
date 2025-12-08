@@ -10,6 +10,7 @@ import { useState, useEffect } from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { Shield, Menu, X, ArrowRight, LogOut, User } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import ThemeToggle from "./ThemeToggle";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -182,6 +183,9 @@ export default function Navbar() {
 
           {/* Right Side Actions - Desktop */}
           <div className="hidden md:flex items-center gap-2">
+            {/* Theme Toggle */}
+            <ThemeToggle />
+
             {isAuthenticated ? (
               <>
                 {/* User Info - Clickable to Profile */}

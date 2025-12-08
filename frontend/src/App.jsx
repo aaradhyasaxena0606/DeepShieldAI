@@ -6,6 +6,7 @@
 
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext.jsx";
+import { ThemeProvider } from "./contexts/ThemeContext.jsx";
 import { LiveMonitorProvider } from "./contexts/LiveMonitorContext.jsx";
 import Navbar from "./components/Navbar.jsx";
 import MobileHeader from "./components/MobileHeader.jsx";
@@ -30,92 +31,94 @@ import Profile from "./pages/Profile.jsx";
 function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <LiveMonitorProvider>
-          <ToastContainer />
-          <LiveMonitorWidget />
-          <div className="app-container">
-            <Navbar />
-            <MobileHeader />
-            <main className="flex-1 h-full w-full bg-fixed mx-auto pb-16 md:pb-0">
-              <Routes>
-                {/* Public Routes */}
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/about" element={<AboutPage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/signup" element={<SignupPage />} />
-                <Route
-                  path="/forgot-password"
-                  element={<ForgotPasswordPage />}
-                />
+      <ThemeProvider>
+        <AuthProvider>
+          <LiveMonitorProvider>
+            <ToastContainer />
+            <LiveMonitorWidget />
+            <div className="app-container">
+              <Navbar />
+              <MobileHeader />
+              <main className="flex-1 h-full w-full bg-fixed mx-auto pb-16 md:pb-0">
+                <Routes>
+                  {/* Public Routes */}
+                  <Route path="/" element={<LandingPage />} />
+                  <Route path="/about" element={<AboutPage />} />
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/signup" element={<SignupPage />} />
+                  <Route
+                    path="/forgot-password"
+                    element={<ForgotPasswordPage />}
+                  />
 
-                {/* Protected Routes */}
-                <Route
-                  path="/home"
-                  element={
-                    <ProtectedRoute>
-                      <HomePage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/analyze"
-                  element={
-                    <ProtectedRoute>
-                      <AnalyzePage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/analyze-video"
-                  element={
-                    <ProtectedRoute>
-                      <AnalyzeVideoPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/analyze-live"
-                  element={
-                    <ProtectedRoute>
-                      <AnalyzeLivePage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/result"
-                  element={
-                    <ProtectedRoute>
-                      <ResultPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/history"
-                  element={
-                    <ProtectedRoute>
-                      <HistoryPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/profile"
-                  element={
-                    <ProtectedRoute>
-                      <Profile />
-                    </ProtectedRoute>
-                  }
-                />
+                  {/* Protected Routes */}
+                  <Route
+                    path="/home"
+                    element={
+                      <ProtectedRoute>
+                        <HomePage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/analyze"
+                    element={
+                      <ProtectedRoute>
+                        <AnalyzePage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/analyze-video"
+                    element={
+                      <ProtectedRoute>
+                        <AnalyzeVideoPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/analyze-live"
+                    element={
+                      <ProtectedRoute>
+                        <AnalyzeLivePage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/result"
+                    element={
+                      <ProtectedRoute>
+                        <ResultPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/history"
+                    element={
+                      <ProtectedRoute>
+                        <HistoryPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/profile"
+                    element={
+                      <ProtectedRoute>
+                        <Profile />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                {/* Catch all - redirect to home */}
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </main>
-            <Footer />
-            <MobileDock />
-          </div>
-        </LiveMonitorProvider>
-      </AuthProvider>
+                  {/* Catch all - redirect to home */}
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </main>
+              <Footer />
+              <MobileDock />
+            </div>
+          </LiveMonitorProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }

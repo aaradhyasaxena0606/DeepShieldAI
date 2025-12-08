@@ -131,12 +131,7 @@ export default function AnalyzeVideoPage() {
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-maroon-900 via-brown-900 to-black">
       {/* Iridescent Background */}
       <div className="absolute inset-0 z-0">
-        <Iridescence
-          color={[0.55, 0.16, 0.16]}
-          speed={0.6}
-          amplitude={0.12}
-          mouseReact={true}
-        />
+        <Iridescence speed={0.6} amplitude={0.12} mouseReact={true} />
       </div>
 
       {/* Content */}

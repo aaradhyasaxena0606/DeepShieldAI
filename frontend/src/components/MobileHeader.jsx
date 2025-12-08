@@ -7,6 +7,7 @@
 import { NavLink } from "react-router-dom";
 import { LogOut, Menu } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import ThemeToggle from "./ThemeToggle";
 import { useState } from "react";
 
 export default function MobileHeader() {
@@ -41,16 +42,22 @@ export default function MobileHeader() {
             </span>
           </NavLink>
 
-          {/* Menu Button - Only show if authenticated */}
-          {isAuthenticated && (
-            <button
-              onClick={() => setShowMenu(!showMenu)}
-              className="p-2 text-beige-200 hover:text-beige-100 hover:bg-beige-200/10 rounded-lg transition-colors"
-              aria-label="Toggle menu"
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-          )}
+          {/* Right side actions */}
+          <div className="flex items-center gap-2">
+            {/* Theme Toggle */}
+            <ThemeToggle />
+
+            {/* Menu Button - Only show if authenticated */}
+            {isAuthenticated && (
+              <button
+                onClick={() => setShowMenu(!showMenu)}
+                className="p-2 text-beige-200 hover:text-beige-100 hover:bg-beige-200/10 rounded-lg transition-colors"
+                aria-label="Toggle menu"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+            )}
+          </div>
         </div>
       </header>
 

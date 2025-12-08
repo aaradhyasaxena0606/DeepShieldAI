@@ -4,14 +4,21 @@
 // Spacing: p-6 cards, gap-6 grids, py-12 px-4 page
 // Animations: animate-fade-in, animate-slide-up, hover:scale-105
 
-import { Link } from 'react-router-dom';
-import { Mic, Video, Radio, ArrowRight, Shield } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { getUserProfile } from '../config/firestorePaths';
-import { useState, useEffect } from 'react';
-import Iridescence from '../ui/Iridescence';
+import { Link } from "react-router-dom";
+import { Mic, Video, Radio, ArrowRight, Shield } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import { getUserProfile } from "../config/firestorePaths";
+import { useState, useEffect } from "react";
+import Iridescence from "../ui/Iridescence";
 
-function AnalysisCard({ to, icon: Icon, title, description, badge, delay = 0 }) {
+function AnalysisCard({
+  to,
+  icon: Icon,
+  title,
+  description,
+  badge,
+  delay = 0,
+}) {
   return (
     <Link
       to={to}
@@ -36,7 +43,9 @@ function AnalysisCard({ to, icon: Icon, title, description, badge, delay = 0 }) 
               </span>
             )}
           </div>
-          <p className="text-sm text-beige-200/80 leading-relaxed">{description}</p>
+          <p className="text-sm text-beige-200/80 leading-relaxed">
+            {description}
+          </p>
         </div>
 
         {/* Arrow */}
@@ -66,9 +75,9 @@ export default function HomePage() {
         const userProfile = await getUserProfile(currentUser.uid);
         setAnalysisCount(userProfile?.analysisCount || 0);
       } catch (err) {
-        console.error('Failed to load analysis count:', err);
+        console.error("Failed to load analysis count:", err);
         // Fallback to localStorage
-        const stored = localStorage.getItem('voiceguard_history');
+        const stored = localStorage.getItem("voiceguard_history");
         if (stored) {
           setAnalysisCount(JSON.parse(stored).length);
         }
@@ -84,7 +93,7 @@ export default function HomePage() {
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-maroon-900 via-brown-900 to-black">
       {/* Iridescent Background */}
       <div className="absolute inset-0 z-0">
-        <Iridescence color={[0.55, 0.16, 0.16]} speed={0.6} amplitude={0.12} mouseReact={true} />
+        <Iridescence speed={0.6} amplitude={0.12} mouseReact={true} />
       </div>
 
       {/* Content */}
@@ -94,15 +103,21 @@ export default function HomePage() {
           <div className="text-center space-y-4 animate-fade-in">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-black/40 backdrop-blur-lg border border-beige-200/20 rounded-full mb-4">
               <Shield className="w-4 h-4 text-maroon-400" />
-              <span className="text-sm text-beige-200 font-medium">Your Dashboard</span>
+              <span className="text-sm text-beige-200 font-medium">
+                Your Dashboard
+              </span>
             </div>
 
             <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-beige-100 via-beige-200 to-maroon-400 bg-clip-text text-transparent">
-              Welcome Back{currentUser?.displayName ? `, ${currentUser.displayName.split(' ')[0]}` : ''}
+              Welcome Back
+              {currentUser?.displayName
+                ? `, ${currentUser.displayName.split(" ")[0]}`
+                : ""}
             </h1>
-            
+
             <p className="text-base text-beige-200/80 max-w-2xl mx-auto leading-relaxed">
-              Choose an analysis type below to start detecting deepfakes with AI-powered precision
+              Choose an analysis type below to start detecting deepfakes with
+              AI-powered precision
             </p>
           </div>
 
@@ -137,29 +152,41 @@ export default function HomePage() {
           </div>
 
           {/* Quick Stats */}
-          <div className="glass-card p-8 animate-slide-up" style={{ animationDelay: '0.3s' }}>
+          <div
+            className="glass-card p-8 animate-slide-up"
+            style={{ animationDelay: "0.3s" }}
+          >
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="text-center">
                 <div className="text-4xl font-bold text-beige-100 mb-2">
-                  {loading ? '...' : analysisCount}
+                  {loading ? "..." : analysisCount}
                 </div>
                 <div className="text-sm text-beige-300">Total Analyses</div>
               </div>
-              
+
               <div className="text-center">
-                <div className="text-4xl font-bold text-beige-100 mb-2">94%</div>
+                <div className="text-4xl font-bold text-beige-100 mb-2">
+                  94%
+                </div>
                 <div className="text-sm text-beige-300">Detection Accuracy</div>
               </div>
-              
+
               <div className="text-center">
-                <div className="text-4xl font-bold text-beige-100 mb-2">&lt;3s</div>
-                <div className="text-sm text-beige-300">Average Processing Time</div>
+                <div className="text-4xl font-bold text-beige-100 mb-2">
+                  &lt;3s
+                </div>
+                <div className="text-sm text-beige-300">
+                  Average Processing Time
+                </div>
               </div>
             </div>
           </div>
 
           {/* Recent Activity Link */}
-          <div className="text-center animate-fade-in" style={{ animationDelay: '0.4s' }}>
+          <div
+            className="text-center animate-fade-in"
+            style={{ animationDelay: "0.4s" }}
+          >
             <Link
               to="/history"
               className="inline-flex items-center gap-2 px-6 py-3 bg-black/40 backdrop-blur-lg hover:bg-black/60 text-beige-100 font-semibold text-base rounded-xl border border-beige-200/20 transition-all duration-300 hover:scale-105"
