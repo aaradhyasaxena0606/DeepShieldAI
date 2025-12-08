@@ -1,5 +1,6 @@
 [build]
-dockerfile = "backend.Dockerfile"
+builder = "DOCKERFILE"
+dockerfilePath = "backend.Dockerfile"
 
 [deploy]
 startCommand = "python -m uvicorn main:app --host 0.0.0.0 --port $PORT"
