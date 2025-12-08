@@ -121,7 +121,7 @@ export function LiveMonitorWidget() {
                   <div className="space-y-3">
                     <div className="text-xs text-beige-300 font-medium">Latest Detection:</div>
                     
-                    {/* Simple Result Display - Just FAKE/REAL and Percentage */}
+                    {/* Simple Result Display - Just FAKE/REAL */}
                     <div className="flex items-center justify-between p-3 bg-black/40 rounded-lg">
                       <div className="flex items-center gap-2">
                         <span className={`text-lg font-bold uppercase ${
@@ -132,9 +132,6 @@ export function LiveMonitorWidget() {
                       </div>
                       
                       <div className="text-right">
-                        <div className="text-2xl font-bold text-beige-100">
-                          {(latestResult.confidence * 100).toFixed(1)}%
-                        </div>
                         <div className="text-xs text-beige-400">
                           {latestResult.displayTime}
                         </div>
