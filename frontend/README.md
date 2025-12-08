@@ -1,29 +1,45 @@
-# VoiceGuard AI - Frontend
+# 🛡️ VoiceGuard AI - Frontend
 
 React-based web application for AI-powered deepfake audio and video detection with real-time monitoring capabilities.
+
+## ✨ Features
+
+- **🎵 Audio Analysis**: Upload and analyze audio files with instant detection
+- **🎥 Video Analysis**: Extract and analyze audio from video files
+- **🔴 Live Monitoring**: Real-time audio monitoring with floating widget
+- **📊 Visual Feedback**: Waveform visualization and confidence gauges
+- **📜 History Tracking**: View past analyses with Firebase integration
+- **🔐 Authentication**: Secure user login and signup with Firebase Auth
+- **🎨 Modern UI**: Dark theme with maroon accents and responsive design
+- **♿ Accessibility**: Keyboard navigation and screen reader support
 
 ## 🚀 Tech Stack
 
 ### Core Framework
+
 - **React 18** - Modern UI library with hooks
 - **Vite** - Next-generation frontend build tool
 - **React Router DOM** - Client-side routing
 
 ### Styling & UI
+
 - **TailwindCSS** - Utility-first CSS framework
 - **Lucide React** - Beautiful icon library
 - **Custom Components** - Reusable UI components with consistent design system
 
 ### State Management
+
 - **React Context API** - Authentication and live monitoring state
 - **Local Storage** - Persistent user preferences
 
 ### Authentication & Backend
+
 - **Firebase Authentication** - Secure user authentication
 - **Firestore** - Cloud database for user data and history
 - **Axios** - HTTP client for API communication
 
 ### Media Processing
+
 - **Web Audio API** - Real-time audio capture and processing
 - **MediaRecorder API** - Audio/video recording
 - **Canvas API** - Waveform visualization
@@ -48,6 +64,7 @@ frontend/
 ## 📄 Pages
 
 ### Public Pages
+
 - **LandingPage** (`/`) - Marketing homepage with features showcase
 - **AboutPage** (`/about`) - Team information and project details
 - **LoginPage** (`/login`) - User authentication
@@ -55,6 +72,7 @@ frontend/
 - **ForgotPasswordPage** (`/forgot-password`) - Password recovery
 
 ### Protected Pages (Require Authentication)
+
 - **HomePage** (`/home`) - Dashboard with quick actions
 - **AnalyzePage** (`/analyze`) - Upload and analyze audio files
 - **AnalyzeVideoPage** (`/analyze-video`) - Upload and analyze video files
@@ -66,10 +84,12 @@ frontend/
 ## 🧩 Components
 
 ### Layout Components
+
 - **Navbar** - Responsive navigation header with authentication state
 - **Footer** - Site footer with links and information
 
 ### Feature Components
+
 - **AudioUploader** - Drag-and-drop audio file uploader
 - **LiveMonitorWidget** - Floating widget for real-time detection status
 - **Waveform** - Audio waveform visualization
@@ -77,6 +97,7 @@ frontend/
 - **DetectionBadge** - Styled badge for REAL/FAKE labels
 
 ### UI Components
+
 - **AlertBox** - Alert messages and notifications
 - **EmptyState** - Empty state placeholders
 - **LoadingSpinner** - Loading indicators
@@ -89,22 +110,26 @@ frontend/
 - **Iridescence** - Animated background effects
 
 ### Utility Components
+
 - **ProtectedRoute** - Route wrapper for authentication
 
 ## 🔧 Services
 
 ### Audio Capture Service (`audioCapture.js`)
+
 - Microphone audio capture
 - System audio capture
 - WebM to WAV conversion
 - Chunk-based recording for live analysis
 
 ### Live Analysis Service (`liveAnalysisService.js`)
+
 - Real-time audio streaming to backend
 - Continuous monitoring management
 - Result handling and state updates
 
 ### API Service (`utils/api.js`)
+
 - Centralized API communication
 - Audio/video upload handling
 - Analysis result retrieval
@@ -113,12 +138,14 @@ frontend/
 ## 🎨 Contexts
 
 ### AuthContext
+
 - User authentication state
 - Login/logout functionality
 - Firebase integration
 - Protected route management
 
 ### LiveMonitorContext
+
 - Live monitoring state
 - Audio source selection (microphone/system)
 - Real-time detection results
@@ -127,11 +154,13 @@ frontend/
 ## 🛠️ Configuration
 
 ### Firebase (`config/firebase.js`)
+
 - Firebase SDK initialization
 - Authentication configuration
 - Firestore setup
 
 ### Firestore Paths (`config/firestorePaths.js`)
+
 - Database path constants
 - Collection references
 
@@ -190,16 +219,19 @@ docker run -p 5173:5173 voiceguard-frontend
 ## 🎨 Design System
 
 ### Color Palette
+
 - **Primary**: Maroon (#800020)
 - **Secondary**: Beige (#F5F5DC)
 - **Background**: Dark (#000000)
 - **Accent**: Maroon variants (#991B1B, #DC2626)
 
 ### Typography
+
 - **Font Family**: System fonts (sans-serif stack)
 - **Sizes**: Responsive scale from text-xs to text-6xl
 
 ### Spacing
+
 - **Consistent Padding**: px-4, py-2, gap-2, gap-4
 - **Responsive Margins**: Tailwind spacing scale
 
