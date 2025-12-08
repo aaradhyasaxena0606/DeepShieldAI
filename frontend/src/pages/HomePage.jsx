@@ -92,8 +92,7 @@ export default function HomePage() {
               to="/analyze-video"
               icon={Video}
               title="Video Analysis"
-              description="Analyze video files for deepfake detection. Extract audio and visual patterns to identify synthetic content."
-              badge="Coming Soon"
+              description="Upload video files to extract and analyze audio for deepfake detection. Get AI-powered insights on authenticity."
               delay={0.1}
             />
 

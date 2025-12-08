@@ -7,72 +7,93 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
 import { Video, Upload, AlertCircle, Shield, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 import Iridescence from '../ui/Iridescence';
 
 export default function AnalyzeVideoPage() {
   const navigate = useNavigate();
   const [videoFile, setVideoFile] = useState(null);
   const [videoName, setVideoName] = useState('');
-  const [audioBlob, setAudioBlob] = useState(null);
-  const [extracting, setExtracting] = useState(false);
-  const [error, setError] = useState('');
   const [analyzing, setAnalyzing] = useState(false);
-
-  const sendAudioForAnalysis = async () => {
-    if (!audioBlob) return;
-    setAnalyzing(true);
-    setError('');
-    try {
-      const formData = new FormData();
-      formData.append('file', audioBlob, 'audio.mp3');
-      const response = await fetch('/analyze', {
-        method: 'POST',
-        body: formData,
-      });
-      if (!response.ok) {
-        throw new Error('Analysis failed');
-      }
-      const result = await response.json();
-      navigate('/result', { state: { data: result } });
-    } catch (err) {
-      setError('Audio analysis failed.');
-    }
-    setAnalyzing(false);
-  };
-
-  const ffmpeg = createFFmpeg({ log: true });
+  const [progress, setProgress] = useState(0);
+  const [error, setError] = useState('');
 
   const handleVideoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Validate file size (max 50MB)
+      const maxSize = 50 * 1024 * 1024;
+      if (file.size > maxSize) {
+        setError('File too large. Maximum size is 50MB.');
+        return;
+      }
       setVideoFile(file);
       setVideoName(file.name);
-      setAudioBlob(null);
       setError('');
     }
   };
 
-  const extractAudio = async () => {
+  const analyzeVideo = async () => {
     if (!videoFile) return;
-    setExtracting(true);
+    setAnalyzing(true);
+    setProgress(0);
     setError('');
+
+    const progressInterval = setInterval(() => {
+      setProgress((prev) => Math.min(prev + 5, 90));
+    }, 500);
+
     try {
-      if (!ffmpeg.isLoaded()) {
-        await ffmpeg.load();
-      }
-      ffmpeg.FS('writeFile', videoName, await fetchFile(videoFile));
-      await ffmpeg.run('-i', videoName, '-vn', '-acodec', 'mp3', 'output.mp3');
-      const data = ffmpeg.FS('readFile', 'output.mp3');
-      const audio = new Blob([data.buffer], { type: 'audio/mp3' });
-      setAudioBlob(audio);
+      const formData = new FormData();
+      formData.append('file', videoFile);
+
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+      const { data } = await axios.post(`${baseUrl}/analyze-video`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      clearInterval(progressInterval);
+      setProgress(100);
+
+      // Save to history
+      const history = JSON.parse(localStorage.getItem('voiceguard_history') || '[]');
+      history.unshift({
+        ...data,
+        filename: videoFile.name,
+        timestamp: new Date().toISOString(),
+      });
+      localStorage.setItem('voiceguard_history', JSON.stringify(history.slice(0, 50)));
+
+      setTimeout(() => {
+        navigate('/result', {
+          state: { data: { ...data, filename: videoFile.name } },
+        });
+      }, 500);
     } catch (err) {
-      setError('Audio extraction failed.');
+      clearInterval(progressInterval);
+      console.error('Video analysis error:', err);
+      
+      if (err.response) {
+        if (err.response.status === 400) {
+          setError(`Invalid file: ${err.response.data.detail || 'Please upload a valid video file.'}`);
+        } else if (err.response.status === 503) {
+          setError('Analysis service unavailable. The ML model may not be loaded.');
+        } else {
+          setError(`Analysis failed: ${err.response.data.detail || 'Unknown server error'}`);
+        }
+      } else if (err.request) {
+        setError('Cannot connect to server. Please ensure the backend is running.');
+      } else {
+        setError('Analysis failed. Please try again.');
+      }
+      setAnalyzing(false);
+      setProgress(0);
     }
-    setExtracting(false);
   };
+
+  return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-maroon-900 via-brown-900 to-black">
       {/* Iridescent Background */}
       <div className="absolute inset-0 z-0">
@@ -109,51 +130,60 @@ export default function AnalyzeVideoPage() {
             </p>
           </div>
 
-          {/* Video Upload Input */}
-          <div className="glass-card p-6 animate-fade-in flex flex-col items-center gap-4">
+          {/* Video Upload and Analysis */}
+          <div className="glass-card p-6 animate-fade-in space-y-4">
+            {/* Error Message */}
+            {error && (
+              <div className="glass-card bg-red-600/20 border-l-4 border-l-red-500 p-4 flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-red-300">{error}</p>
+              </div>
+            )}
+
             <label htmlFor="video-upload" className="text-sm font-semibold text-beige-100 mb-2 flex items-center gap-2">
               <Upload className="w-5 h-5 text-maroon-400" />
               Upload Video File
             </label>
+            
             <input
               id="video-upload"
               type="file"
-              accept="video/mp4,video/mov,video/avi"
-              className="block w-full text-sm text-beige-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-maroon-600 file:text-beige-50 hover:file:bg-maroon-700"
+              accept="video/mp4,video/quicktime,video/x-msvideo"
+              className="block w-full text-sm text-beige-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-maroon-600 file:text-beige-50 hover:file:bg-maroon-700 cursor-pointer"
               onChange={handleVideoChange}
+              disabled={analyzing}
             />
+            
             {videoName && (
-              <div className="text-xs text-beige-300 mt-2">Selected: {videoName}</div>
+              <div className="text-xs text-beige-300">Selected: {videoName}</div>
             )}
-            {videoFile && (
+            
+            {videoFile && !analyzing && (
               <button
-                className="mt-4 px-6 py-2 bg-maroon-600 hover:bg-maroon-700 text-beige-50 font-semibold rounded-lg transition-all duration-300"
-                onClick={extractAudio}
-                disabled={extracting}
+                className="w-full mt-4 px-6 py-3 bg-maroon-600 hover:bg-maroon-700 text-beige-50 font-semibold rounded-lg transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2"
+                onClick={analyzeVideo}
               >
-                {extracting ? 'Extracting Audio...' : 'Extract Audio'}
+                <Video className="w-5 h-5" />
+                Analyze Video
               </button>
             )}
-            {audioBlob && (
-              <>
-                <audio controls src={URL.createObjectURL(audioBlob)} className="mt-4" />
-                <button
-                  className="mt-4 px-6 py-2 bg-maroon-600 hover:bg-maroon-700 text-beige-50 font-semibold rounded-lg transition-all duration-300"
-                  onClick={sendAudioForAnalysis}
-                  disabled={analyzing}
-                >
-                  {analyzing ? 'Analyzing...' : 'Analyze Audio'}
-                </button>
-              </>
-            )}
-            {analysisResult && (
-              <div className="mt-4 p-4 bg-black/30 rounded-lg text-beige-100">
-                <div className="font-bold mb-2">Analysis Result</div>
-                <pre className="text-xs whitespace-pre-wrap">{JSON.stringify(analysisResult, null, 2)}</pre>
+
+            {analyzing && (
+              <div className="mt-4 space-y-2">
+                <div className="flex items-center justify-between text-sm text-beige-200">
+                  <span>Processing video...</span>
+                  <span>{progress}%</span>
+                </div>
+                <div className="w-full bg-black/40 rounded-full h-2 overflow-hidden">
+                  <div
+                    className="bg-gradient-to-r from-maroon-600 to-maroon-400 h-full transition-all duration-300 rounded-full"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+                <p className="text-xs text-beige-300 text-center">
+                  Extracting audio and analyzing for deepfakes...
+                </p>
               </div>
-            )}
-            {error && (
-              <div className="text-xs text-red-400 mt-2">{error}</div>
             )}
           </div>
           {/* Info Cards */}
@@ -195,53 +225,28 @@ export default function AnalyzeVideoPage() {
             </div>
           </div>
 
-          {/* Coming Soon Card */}
-          <div className="glass-card p-12 text-center space-y-6 animate-slide-up" style={{ animationDelay: '0.1s' }}>
-            <div className="inline-flex p-6 bg-maroon-600/20 rounded-3xl mb-4">
-              <Video className="w-16 h-16 text-maroon-400" />
-            </div>
-
-            <div className="space-y-3">
-              <h2 className="text-3xl md:text-4xl font-bold text-beige-100">
-                Coming Soon
-              </h2>
-              <p className="text-base text-beige-200/80 max-w-xl mx-auto leading-relaxed">
-                Our video deepfake detection feature is currently under development. We're training advanced models to analyze facial movements, lip-sync accuracy, and audio-visual consistency.
-              </p>
-            </div>
-
-            <div className="pt-4">
-              <Link
-                to="/home"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-maroon-600 hover:bg-maroon-700 text-beige-50 font-semibold text-base rounded-xl transition-all duration-300 hover:scale-105"
-              >
-                Try Audio Analysis Instead
-              </Link>
-            </div>
-          </div>
-
-          {/* Feature Preview */}
+          {/* How It Works */}
           <div className="glass-card bg-maroon-600/10 backdrop-blur-lg border-maroon-400/30 p-6 animate-slide-up" style={{ animationDelay: '0.2s' }}>
             <h3 className="text-base font-semibold text-beige-100 mb-3 flex items-center gap-2">
               <AlertCircle className="w-5 h-5 text-maroon-400" />
-              What to Expect
+              How It Works
             </h3>
             <ul className="space-y-2 text-sm text-beige-200/80">
               <li className="flex items-start gap-2">
-                <span className="font-semibold text-maroon-400 flex-shrink-0">•</span>
-                <span>Multi-modal analysis combining audio and visual deepfake detection</span>
+                <span className="font-semibold text-maroon-400 flex-shrink-0">1.</span>
+                <span>Upload your video file (MP4, MOV, or AVI format, max 50MB)</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="font-semibold text-maroon-400 flex-shrink-0">•</span>
-                <span>Facial landmark tracking to detect synthetic face generation</span>
+                <span className="font-semibold text-maroon-400 flex-shrink-0">2.</span>
+                <span>Our backend extracts the audio track from your video automatically</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="font-semibold text-maroon-400 flex-shrink-0">•</span>
-                <span>Lip-sync analysis to identify audio-visual mismatches</span>
+                <span className="font-semibold text-maroon-400 flex-shrink-0">3.</span>
+                <span>The extracted audio is analyzed by our CNN model for deepfake detection</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="font-semibold text-maroon-400 flex-shrink-0">•</span>
-                <span>AI-generated explanations powered by Google Gemini</span>
+                <span className="font-semibold text-maroon-400 flex-shrink-0">4.</span>
+                <span>Get a confidence score and AI-generated explanation powered by Google Gemini</span>
               </li>
             </ul>
           </div>
