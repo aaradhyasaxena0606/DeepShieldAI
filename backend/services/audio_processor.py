@@ -13,6 +13,11 @@ except ImportError:
     librosa = None
     sf = None
 
+try:
+    from pydub import AudioSegment
+except ImportError:
+    AudioSegment = None
+
 TARGET_SR = 16000
 DURATION = 2.0
 N_FFT = 2048
@@ -42,7 +47,26 @@ def extract_features(raw_bytes: bytes):
             audio_buf = io.BytesIO(raw_bytes)
             audio, sr = librosa.load(audio_buf, sr=TARGET_SR)
         except Exception as e_lb:
-            raise RuntimeError(f"Failed to load audio with soundfile ({e_sf}) and librosa ({e_lb}).")
+            # Try pydub for WebM and other formats
+            if AudioSegment is not None:
+                try:
+                    audio_segment = AudioSegment.from_file(io.BytesIO(raw_bytes))
+                    # Convert to mono if stereo
+                    if audio_segment.channels > 1:
+                        audio_segment = audio_segment.set_channels(1)
+                    # Convert to target sample rate
+                    if audio_segment.frame_rate != TARGET_SR:
+                        audio_segment = audio_segment.set_frame_rate(TARGET_SR)
+                    # Export to WAV in memory
+                    wav_buffer = io.BytesIO()
+                    audio_segment.export(wav_buffer, format="wav")
+                    wav_buffer.seek(0)
+                    # Read with soundfile
+                    audio, sr = sf.read(wav_buffer, dtype='float32')
+                except Exception as e_pydub:
+                    raise RuntimeError(f"Failed to load audio with soundfile ({e_sf}), librosa ({e_lb}), and pydub ({e_pydub}).")
+            else:
+                raise RuntimeError(f"Failed to load audio with soundfile ({e_sf}) and librosa ({e_lb}).")
     
     # Ensure float32
     audio = audio.astype(np.float32)

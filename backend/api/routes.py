@@ -234,3 +234,107 @@ async def analyze_video(file: UploadFile = File(...)):
         print("[AnalyzeVideo] Full traceback:")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=error_msg)
+
+
+@router.post("/analyze-live", response_model=AnalysisResponse)
+async def analyze_live(file: UploadFile = File(...)):
+    """
+    Dedicated endpoint for live audio monitoring analysis.
+    Optimized for real-time audio stream processing with WebM support.
+    Processes continuous audio chunks from system/microphone capture.
+    """
+    print(f"[AnalyzeLive] Received live audio chunk: {file.filename}, content_type: {file.content_type}")
+    
+    # Live monitoring primarily uses WebM/Opus format
+    valid_live_types = (
+        "audio/webm", "audio/webm;codecs=opus",
+        "audio/wav", "audio/x-wav"  # Fallback support
+    )
+    
+    if file.content_type not in valid_live_types:
+        print(f"[AnalyzeLive] ERROR: Unsupported live audio type: {file.content_type}")
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Live monitoring requires WebM or WAV format. Received: {file.content_type}"
+        )
+    
+    # Check if model service is available
+    if not MODEL_SERVICE_AVAILABLE:
+        error_msg = "ML model service unavailable for live monitoring."
+        print(f"[AnalyzeLive] ERROR: {error_msg}")
+        raise HTTPException(status_code=503, detail=error_msg)
+    
+    try:
+        print("[AnalyzeLive] Reading live audio chunk...")
+        data = await file.read()
+        print(f"[AnalyzeLive] Chunk read successfully, size: {len(data)} bytes")
+        
+        # Validate chunk size (should be ~10 seconds of WebM audio)
+        if len(data) < 1000:  # Too small to be valid audio
+            print(f"[AnalyzeLive] WARNING: Audio chunk too small: {len(data)} bytes")
+            raise HTTPException(
+                status_code=400,
+                detail="Audio chunk too small. Ensure audio capture is working properly."
+            )
+        
+        print("[AnalyzeLive] Processing live audio with dedicated processor...")
+        from services.live_processor import process_live_audio
+        
+        features = process_live_audio(data)
+        mel = features.get('mel_spectrogram')
+        
+        try:
+            shape = getattr(mel, 'shape', None)
+            print(f"[AnalyzeLive] Features extracted successfully. mel_spectrogram shape: {shape}")
+            print(f"[AnalyzeLive] mel_spectrogram dtype: {mel.dtype if hasattr(mel, 'dtype') else 'unknown'}")
+            print(f"[AnalyzeLive] mel_spectrogram range: [{mel.min():.3f}, {mel.max():.3f}]")
+        except Exception:
+            print("[AnalyzeLive] Features extracted successfully. mel_spectrogram shape: unknown")
+
+        print("[AnalyzeLive] Running model prediction on live audio...")
+        prediction_label, confidence, raw_vector = model_service.predict(features)
+        used_placeholder = getattr(model_service, '_allow_placeholder', False)
+        print(f"[AnalyzeLive] Prediction result: label={prediction_label}, confidence={confidence:.3f}")
+
+        print("[AnalyzeLive] Skipping RAG explanation to avoid rate limits...")
+        error_details = None
+        
+        # Disable RAG for live monitoring to avoid rate limit issues
+        # Live monitoring sends frequent requests (every 10s), which quickly exhausts free tier quota
+        print("[AnalyzeLive] RAG disabled for live monitoring (prevents rate limit exhaustion)")
+        rag = {
+            "confidence_level": "HIGH" if confidence >= 0.8 else "MEDIUM" if confidence >= 0.5 else "LOW",
+            "ai_explanation": "Live monitoring active. Detailed explanations disabled to prevent API rate limits.",
+            "detected_patterns": [],
+            "recommendation": "Continue monitoring audio stream. Upload files for detailed analysis.",
+            "processing_time_ms": 0,
+        }
+
+        print(f"[AnalyzeLive] SUCCESS: Live chunk analyzed - {prediction_label.upper()} ({confidence:.1%})")
+        
+        return AnalysisResponse(
+            prediction=prediction_label,
+            confidence=confidence,
+            confidence_level=rag["confidence_level"],
+            ai_explanation=rag["ai_explanation"],
+            detected_patterns=rag["detected_patterns"],
+            recommendation=rag["recommendation"],
+            processing_time_ms=rag.get("processing_time_ms", 0),
+            error_details=error_details,
+            used_placeholder=used_placeholder,
+        )
+        
+    except HTTPException:
+        raise
+    except ValueError as e:
+        error_msg = f"Invalid live audio chunk: {str(e)}"
+        print(f"[AnalyzeLive] ERROR: {error_msg}")
+        raise HTTPException(status_code=400, detail=error_msg)
+    except Exception as e:
+        error_msg = f"Live analysis failed: {str(e)}"
+        print(f"[AnalyzeLive] ERROR: {error_msg}")
+        print(f"[AnalyzeLive] Exception type: {type(e).__name__}")
+        import traceback
+        print("[AnalyzeLive] Full traceback:")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=error_msg)
