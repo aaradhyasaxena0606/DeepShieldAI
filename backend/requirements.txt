@@ -14,3 +14,5 @@ soundfile==0.13.1
 scikit-learn==1.7.2
 # Video processing
 moviepy==1.0.3
+# Audio format conversion (WebM/Opus support for live monitoring)
+pydub==0.25.1

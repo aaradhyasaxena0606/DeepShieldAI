@@ -5,6 +5,8 @@
 import io
 import numpy as np
 from scipy.ndimage import zoom
+import subprocess
+import shutil
 
 try:
     import librosa
@@ -15,8 +17,13 @@ except ImportError:
 
 try:
     from pydub import AudioSegment
+    # Check if ffmpeg is available (required for WebM/Opus)
+    FFMPEG_AVAILABLE = shutil.which("ffmpeg") is not None
+    if not FFMPEG_AVAILABLE:
+        print("[WARNING] ffmpeg not found. WebM/Opus live audio may not work. Please install ffmpeg.")
 except ImportError:
     AudioSegment = None
+    FFMPEG_AVAILABLE = False
 
 # Same preprocessing parameters as training
 TARGET_SR = 16000
@@ -40,7 +47,9 @@ def process_live_audio(raw_bytes: bytes):
     # Primary: Try pydub first for WebM (most common in live monitoring)
     if AudioSegment is not None:
         try:
-            audio_segment = AudioSegment.from_file(io.BytesIO(raw_bytes))
+            # Create buffer for pydub
+            pydub_buffer = io.BytesIO(raw_bytes)
+            audio_segment = AudioSegment.from_file(pydub_buffer)
             
             # Convert to mono if stereo
             if audio_segment.channels > 1:
@@ -59,9 +68,10 @@ def process_live_audio(raw_bytes: bytes):
             audio, sr = sf.read(wav_buffer, dtype='float32')
             
         except Exception as e_pydub:
-            # Fallback to soundfile for WAV
+            # Fallback to soundfile for WAV - reset buffer position
             try:
                 audio_buf = io.BytesIO(raw_bytes)
+                audio_buf.seek(0)  # Ensure buffer is at start
                 audio, sr = sf.read(audio_buf)
                 
                 # Convert stereo to mono
@@ -74,19 +84,22 @@ def process_live_audio(raw_bytes: bytes):
                     sr = TARGET_SR
                     
             except Exception as e_sf:
-                # Last resort: librosa
+                # Last resort: librosa - reset buffer position
                 try:
                     audio_buf = io.BytesIO(raw_bytes)
+                    audio_buf.seek(0)  # Ensure buffer is at start
                     audio, sr = librosa.load(audio_buf, sr=TARGET_SR)
                 except Exception as e_lb:
-                    raise RuntimeError(
-                        f"Failed to load live audio stream. "
-                        f"pydub: {e_pydub}, soundfile: {e_sf}, librosa: {e_lb}"
-                    )
+                    # Build helpful error message
+                    error_msg = f"Failed to load live audio stream. pydub: {e_pydub}, soundfile: {e_sf}, librosa: {e_lb}"
+                    if not FFMPEG_AVAILABLE:
+                        error_msg += " | FFmpeg is not installed. Please install FFmpeg to process WebM/Opus audio from live monitoring."
+                    raise RuntimeError(error_msg)
     else:
         # No pydub available, try soundfile then librosa
         try:
             audio_buf = io.BytesIO(raw_bytes)
+            audio_buf.seek(0)  # Ensure buffer is at start
             audio, sr = sf.read(audio_buf)
             
             if audio.ndim > 1:
@@ -99,9 +112,13 @@ def process_live_audio(raw_bytes: bytes):
         except Exception as e_sf:
             try:
                 audio_buf = io.BytesIO(raw_bytes)
+                audio_buf.seek(0)  # Ensure buffer is at start
                 audio, sr = librosa.load(audio_buf, sr=TARGET_SR)
             except Exception as e_lb:
-                raise RuntimeError(f"Failed to load audio: soundfile ({e_sf}), librosa ({e_lb})")
+                error_msg = f"Failed to load audio: soundfile ({e_sf}), librosa ({e_lb})"
+                if not FFMPEG_AVAILABLE:
+                    error_msg += " | FFmpeg is not installed. Please install FFmpeg to process WebM/Opus audio."
+                raise RuntimeError(error_msg)
     
     # Ensure float32
     audio = audio.astype(np.float32)

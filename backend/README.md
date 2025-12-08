@@ -85,7 +85,40 @@ pip install -r requirements.txt
 
 **Note**: Uses flexible numpy versioning (`numpy>=1.24.0,<2.0.0`) to ensure prebuilt wheels work on Python 3.11+.
 
-### 2. Set Environment Variables
+### 2. Install FFmpeg (Required for Live Monitoring & WebM/Opus Support)
+
+**Windows**:
+
+```bash
+# Using Chocolatey (recommended)
+choco install ffmpeg
+
+# Or download from: https://ffmpeg.org/download.html
+# Extract and add to PATH
+```
+
+**macOS**:
+
+```bash
+brew install ffmpeg
+```
+
+**Linux (Ubuntu/Debian)**:
+
+```bash
+sudo apt update
+sudo apt install ffmpeg
+```
+
+**Verify Installation**:
+
+```bash
+ffmpeg -version
+```
+
+**Why FFmpeg?**: Required by `pydub` to process WebM/Opus audio from live monitoring. Without FFmpeg, live monitoring will fail.
+
+### 3. Set Environment Variables
 
 Create `.env` file:
 
@@ -143,6 +176,22 @@ curl -X POST "http://localhost:8000/api/analyze" \
 ```
 
 **Supported formats**: WAV, MP3, WebM
+
+### POST /api/analyze-live
+
+Analyze live audio stream for real-time deepfake detection. Optimized for continuous monitoring with 10-second chunks.
+
+**Request**:
+
+```bash
+curl -X POST "http://localhost:8000/api/analyze-live" \
+  -H "Content-Type: multipart/form-data" \
+  -F "file=@live_audio.webm"
+```
+
+**Supported formats**: WebM/Opus (from MediaRecorder API), WAV
+
+**Note**: Requires FFmpeg for WebM processing. Install FFmpeg before using live monitoring (see installation steps above).
 
 ### POST /api/analyze-video
 
