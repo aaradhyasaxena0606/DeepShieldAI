@@ -151,7 +151,12 @@ class ModelService:
             # Use threshold from environment or default to 0.5
             # Lower threshold makes it more likely to detect FAKE
             decision_threshold = float(os.getenv("DECISION_THRESHOLD", "0.5"))
+            low_conf_margin = float(os.getenv("LOW_CONF_MARGIN", "0.15"))
             print(f"[ModelService] Decision threshold: {decision_threshold}")
+            print(f"[ModelService] Low confidence margin: {low_conf_margin}")
+            
+            # Determine if prediction is uncertain (within margin of threshold)
+            is_uncertain = abs(prob_real - decision_threshold) < low_conf_margin
             
             if prob_real >= decision_threshold:
                 label = 'real'
@@ -160,6 +165,11 @@ class ModelService:
                 label = 'fake'
                 confidence = 1.0 - prob_real
             probs = [1.0 - prob_real, prob_real]  # [fake, real]
+            
+            # Log uncertainty for monitoring
+            if is_uncertain:
+                print(f"[ModelService] WARNING: Low confidence prediction (uncertain)")
+            
             return label, confidence, probs
         else:
             # Assume [fake, real] probabilities
