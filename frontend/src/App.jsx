@@ -1,34 +1,58 @@
 // VoiceGuard AI - Main App Component
-// Set up React Router with routes: "/" (LandingPage), "/analyze" (AnalyzePage), "/history" (HistoryPage), "/about" (AboutPage)
+// Set up React Router with routes: "/" (LandingPage), "/home" (HomePage - protected), "/analyze" (AnalyzePage - protected)
+// "/history" (HistoryPage - protected), "/about" (AboutPage), "/login", "/signup", "/forgot-password"
 // Render <Navbar /> at top, <Routes> in middle, <Footer /> at bottom with dark background layout
+// Wrap app in AuthProvider for authentication state management
 
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider } from './contexts/AuthContext.jsx'
 import Navbar from './components/Navbar.jsx'
 import { Footer } from './components/Footer.jsx'
 import { ToastContainer } from './components/Toast.jsx'
+import ProtectedRoute from './components/ProtectedRoute.jsx'
 import LandingPage from './pages/LandingPage.jsx'
+import HomePage from './pages/HomePage.jsx'
 import AnalyzePage from './pages/AnalyzePage.jsx'
+import AnalyzeVideoPage from './pages/AnalyzeVideoPage.jsx'
+import AnalyzeLivePage from './pages/AnalyzeLivePage.jsx'
 import ResultPage from './pages/ResultPage.jsx'
 import HistoryPage from './pages/HistoryPage.jsx'
 import AboutPage from './pages/AboutPage.jsx'
+import LoginPage from './pages/LoginPage.jsx'
+import SignupPage from './pages/SignupPage.jsx'
+import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx'
 
 function App() {
   return (
     <BrowserRouter>
-      <ToastContainer />
-      <div className="app-container">
-        <Navbar />
-        <main className="flex-1 h-full w-full bg-fixed mx-auto">
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/analyze" element={<AnalyzePage />} />
-            <Route path="/result" element={<ResultPage />} />
-            <Route path="/history" element={<HistoryPage />} />
-            <Route path="/about" element={<AboutPage />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
+      <AuthProvider>
+        <ToastContainer />
+        <div className="app-container">
+          <Navbar />
+          <main className="flex-1 h-full w-full bg-fixed mx-auto">
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/signup" element={<SignupPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              
+              {/* Protected Routes */}
+              <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+              <Route path="/analyze" element={<ProtectedRoute><AnalyzePage /></ProtectedRoute>} />
+              <Route path="/analyze-video" element={<ProtectedRoute><AnalyzeVideoPage /></ProtectedRoute>} />
+              <Route path="/analyze-live" element={<ProtectedRoute><AnalyzeLivePage /></ProtectedRoute>} />
+              <Route path="/result" element={<ProtectedRoute><ResultPage /></ProtectedRoute>} />
+              <Route path="/history" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
+              
+              {/* Catch all - redirect to home */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </main>
+          <Footer />
+        </div>
+      </AuthProvider>
     </BrowserRouter>
   )
 }

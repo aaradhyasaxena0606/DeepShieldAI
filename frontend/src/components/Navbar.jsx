@@ -7,18 +7,37 @@
 // Animations: hover effects, mobile menu slideInLeft
 
 import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
-import { Shield, Menu, X, ArrowRight } from 'lucide-react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { Shield, Menu, X, ArrowRight, LogOut, User } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { currentUser, isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
 
-  const links = [
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Failed to log out:', error);
+    }
+  };
+
+  const publicLinks = [
     { to: '/', label: 'Home' },
-    { to: '/analyze', label: 'Analyze' },
+    { to: '/#features', label: 'Features' },
+    { to: '/about', label: 'About' }
+  ];
+
+  const authenticatedLinks = [
+    { to: '/home', label: 'Dashboard' },
     { to: '/history', label: 'History' },
     { to: '/about', label: 'About' }
   ];
+
+  const links = isAuthenticated ? authenticatedLinks : publicLinks;
 
   return (
     <header className="sticky top-0 z-50 backdrop-blur-xl bg-black/60 border-b border-beige-200/10 shadow-lg shadow-black/20">
@@ -58,14 +77,48 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* CTA Button - Desktop */}
-          <NavLink
-            to="/analyze"
-            className="hidden md:flex items-center gap-2 px-6 py-3 bg-maroon-600 hover:bg-maroon-700 text-beige-50 font-semibold text-base rounded-xl transition-all duration-300 hover:scale-105"
-          >
-            Get Started
-            <ArrowRight className="w-4 h-4" />
-          </NavLink>
+          {/* Right Side Actions - Desktop */}
+          <div className="hidden md:flex items-center gap-2">
+            {isAuthenticated ? (
+              <>
+                {/* User Info */}
+                <div className="flex items-center gap-2 px-3 py-2 bg-black/40 backdrop-blur-lg border border-beige-200/20 rounded-xl">
+                  <User className="w-4 h-4 text-maroon-400" />
+                  <span className="text-sm text-beige-100">
+                    {currentUser?.displayName || currentUser?.email?.split('@')[0] || 'User'}
+                  </span>
+                </div>
+                
+                {/* Logout Button */}
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 px-4 py-2 bg-maroon-600/20 hover:bg-maroon-600/30 text-maroon-400 border border-maroon-400/30 rounded-xl transition-all duration-300"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span className="text-sm font-medium">Sign Out</span>
+                </button>
+              </>
+            ) : (
+              <>
+                {/* Login Button */}
+                <NavLink
+                  to="/login"
+                  className="px-4 py-2 bg-black/40 backdrop-blur-lg hover:bg-black/60 text-beige-100 font-medium text-sm rounded-xl border border-beige-200/20 transition-all duration-300"
+                >
+                  Sign In
+                </NavLink>
+                
+                {/* Signup Button */}
+                <NavLink
+                  to="/signup"
+                  className="flex items-center gap-2 px-6 py-3 bg-maroon-600 hover:bg-maroon-700 text-beige-50 font-semibold text-base rounded-xl transition-all duration-300 hover:scale-105"
+                >
+                  Get Started
+                  <ArrowRight className="w-4 h-4" />
+                </NavLink>
+              </>
+            )}
+          </div>
 
           {/* Mobile Menu Button */}
           <button
@@ -103,15 +156,54 @@ export default function Navbar() {
                 {link.label}
               </NavLink>
             ))}
-            <NavLink
-              to="/analyze"
-              onClick={() => setMobileMenuOpen(false)}
-              className="mt-8 flex items-center gap-2 px-8 py-4 bg-maroon-600 hover:bg-maroon-700 text-beige-50 font-semibold text-base rounded-xl transition-all"
-              style={{ animation: 'slideInLeft 0.6s ease-out 0.4s backwards' }}
-            >
-              Get Started
-              <ArrowRight className="w-5 h-5" />
-            </NavLink>
+            
+            {isAuthenticated ? (
+              <>
+                {/* User Info Mobile */}
+                <div className="mt-6 text-center" style={{ animation: 'slideInLeft 0.6s ease-out 0.3s backwards' }}>
+                  <p className="text-sm text-beige-300 mb-2">Signed in as</p>
+                  <p className="text-base text-beige-100 font-semibold">
+                    {currentUser?.displayName || currentUser?.email}
+                  </p>
+                </div>
+                
+                {/* Logout Button Mobile */}
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="mt-4 flex items-center gap-2 px-8 py-4 bg-maroon-600/20 hover:bg-maroon-600/30 text-maroon-300 border border-maroon-400/30 rounded-xl transition-all"
+                  style={{ animation: 'slideInLeft 0.6s ease-out 0.4s backwards' }}
+                >
+                  <LogOut className="w-5 h-5" />
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                {/* Login Button Mobile */}
+                <NavLink
+                  to="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="mt-6 px-8 py-4 bg-black/40 backdrop-blur-lg hover:bg-black/60 text-beige-100 font-semibold text-base rounded-xl border border-beige-200/20 transition-all"
+                  style={{ animation: 'slideInLeft 0.6s ease-out 0.3s backwards' }}
+                >
+                  Sign In
+                </NavLink>
+                
+                {/* Signup Button Mobile */}
+                <NavLink
+                  to="/signup"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-2 px-8 py-4 bg-maroon-600 hover:bg-maroon-700 text-beige-50 font-semibold text-base rounded-xl transition-all"
+                  style={{ animation: 'slideInLeft 0.6s ease-out 0.4s backwards' }}
+                >
+                  Get Started
+                  <ArrowRight className="w-5 h-5" />
+                </NavLink>
+              </>
+            )}
           </div>
         </div>
       )}
