@@ -1,17 +1,16 @@
 # VoiceGuard AI Backend - Dockerfile
-# Use an official TensorFlow CPU image as the base to avoid downloading the
-# large TensorFlow wheel during the build. This makes docker builds more
-# reliable on flaky connections and provides a tested runtime for TF-based
-# model loading.
-FROM tensorflow/tensorflow:2.16.1
+# Use lightweight Python base image instead of TensorFlow (saves ~3GB)
+FROM python:3.11-slim
 
 # Working directory
 WORKDIR /app
 
-# Install small set of system dependencies needed for some Python packages
+# Install system dependencies needed for Python packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
+    libsndfile1 \
+    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first to leverage Docker cache
