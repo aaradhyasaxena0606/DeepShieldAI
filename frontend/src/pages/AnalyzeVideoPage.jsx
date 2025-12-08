@@ -3,7 +3,7 @@
 // Colors: maroon-400 icons, beige hierarchy, glass-card with backdrop-blur-lg
 // Spacing: p-6 cards, gap-6 grids, py-12 px-4 page
 // Animations: animate-fade-in, animate-slide-up, hover:scale-105
-
+git add -A
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Video, Upload, AlertCircle, Shield, ArrowLeft } from "lucide-react";
