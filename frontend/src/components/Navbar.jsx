@@ -6,15 +6,17 @@
 // Spacing: h-16 header, px-4 py-2 links, gap-1/2
 // Animations: hover effects, mobile menu slideInLeft
 
-import { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { Shield, Menu, X, ArrowRight, LogOut, User } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState('');
   const { currentUser, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = async () => {
     try {
@@ -25,10 +27,45 @@ export default function Navbar() {
     }
   };
 
+  // Track active section for hash links
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = ['stats', 'features'];
+      const scrollPosition = window.scrollY + 100;
+
+      // Check if we're in the hero section (top of page)
+      if (scrollPosition < 200) {
+        setActiveSection('home');
+        return;
+      }
+
+      for (const section of sections) {
+        const element = document.getElementById(section);
+        if (element) {
+          const { offsetTop, offsetHeight } = element;
+          if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
+            setActiveSection(section);
+            return;
+          }
+        }
+      }
+      setActiveSection('');
+    };
+
+    if (location.pathname === '/') {
+      window.addEventListener('scroll', handleScroll);
+      handleScroll();
+      return () => window.removeEventListener('scroll', handleScroll);
+    } else {
+      setActiveSection('');
+    }
+  }, [location.pathname]);
+
   const publicLinks = [
-    { to: '/', label: 'Home' },
-    { to: '/#features', label: 'Features' },
-    { to: '/about', label: 'About' }
+    { to: '/', label: 'Home', exact: true, section: 'home' },
+    { to: '/#stats', label: 'Stats', isHash: true, section: 'stats' },
+    { to: '/#features', label: 'Features', isHash: true, section: 'features' },
+    { to: '/about', label: 'About', exact: false }
   ];
 
   const authenticatedLinks = [
@@ -39,41 +76,101 @@ export default function Navbar() {
 
   const links = isAuthenticated ? authenticatedLinks : publicLinks;
 
+  const handleHashClick = (e, href, section) => {
+    e.preventDefault();
+    if (location.pathname !== '/') {
+      navigate('/');
+      setTimeout(() => {
+        const element = document.getElementById(section);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    } else {
+      const element = document.getElementById(section);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
+
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-xl bg-black/60 border-b border-beige-200/10 shadow-lg shadow-black/20">
+    <header className="sticky top-0 z-50 backdrop-blur-xl bg-black/60 border-b border-beige-200/10 shadow-lg shadow-black/20 font-sans">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <NavLink to="/" className="flex items-center gap-2 group">
-            <div className="p-2 bg-maroon-600/20 rounded-lg group-hover:bg-maroon-600/30 transition-colors">
-              <Shield className="w-5 h-5 text-maroon-400" />
-            </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-beige-100 via-beige-200 to-maroon-400 bg-clip-text text-transparent">
-              VoiceGuard
+          <NavLink to="/" className="flex items-center gap-3 group">
+            <img 
+              src="/logo.png" 
+              alt="VoiceGuard AI" 
+              className="w-10 h-10 object-contain rounded-lg group-hover:scale-110 transition-transform duration-300"
+            />
+            <span className="text-xl font-bold bg-gradient-to-r from-beige-100 to-maroon-400 bg-clip-text text-transparent">
+              VoiceGuard AI
             </span>
           </NavLink>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-1">
             {links.map((link) => (
-              <NavLink
-                key={link.to}
-                to={link.to}
-                className={({ isActive }) =>
-                  `relative px-4 py-2 text-sm font-medium transition-colors ${
-                    isActive ? 'text-beige-100' : 'text-beige-200 hover:text-beige-100'
-                  }`
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    {link.label}
-                    {isActive && (
-                      <span className="absolute bottom-0 left-0 right-0 h-1 bg-maroon-500 rounded-t-full" />
-                    )}
-                  </>
-                )}
-              </NavLink>
+              link.isHash ? (
+                <a
+                  key={link.to}
+                  href={link.to}
+                  onClick={(e) => handleHashClick(e, link.to, link.section)}
+                  className={`relative px-4 py-2 text-sm font-medium transition-colors ${
+                    activeSection === link.section && location.pathname === '/'
+                      ? 'text-beige-100'
+                      : 'text-beige-200 hover:text-beige-100'
+                  }`}
+                >
+                  {link.label}
+                  {activeSection === link.section && location.pathname === '/' && (
+                    <span className="absolute bottom-0 left-0 right-0 h-1 bg-maroon-500 rounded-t-full" />
+                  )}
+                </a>
+              ) : link.to === '/' ? (
+                <a
+                  key={link.to}
+                  href={link.to}
+                  onClick={(e) => {
+                    if (location.pathname === '/') {
+                      e.preventDefault();
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                  }}
+                  className={`relative px-4 py-2 text-sm font-medium transition-colors ${
+                    activeSection === 'home' && location.pathname === '/'
+                      ? 'text-beige-100'
+                      : 'text-beige-200 hover:text-beige-100'
+                  }`}
+                >
+                  {link.label}
+                  {activeSection === 'home' && location.pathname === '/' && (
+                    <span className="absolute bottom-0 left-0 right-0 h-1 bg-maroon-500 rounded-t-full" />
+                  )}
+                </a>
+              ) : (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  end={link.exact}
+                  className={({ isActive }) =>
+                    `relative px-4 py-2 text-sm font-medium transition-colors ${
+                      isActive ? 'text-beige-100' : 'text-beige-200 hover:text-beige-100'
+                    }`
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      {link.label}
+                      {isActive && (
+                        <span className="absolute bottom-0 left-0 right-0 h-1 bg-maroon-500 rounded-t-full" />
+                      )}
+                    </>
+                  )}
+                </NavLink>
+              )
             ))}
           </div>
 
@@ -103,15 +200,15 @@ export default function Navbar() {
                 {/* Login Button */}
                 <NavLink
                   to="/login"
-                  className="px-4 py-2 bg-black/40 backdrop-blur-lg hover:bg-black/60 text-beige-100 font-medium text-sm rounded-xl border border-beige-200/20 transition-all duration-300"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-black/60 backdrop-blur-xl hover:bg-black/80 text-beige-100 font-bold text-base rounded-xl border-2 border-beige-200/30 hover:border-beige-200/50 transition-all duration-300"
                 >
-                  Sign In
+                  Login
                 </NavLink>
                 
                 {/* Signup Button */}
                 <NavLink
                   to="/signup"
-                  className="flex items-center gap-2 px-6 py-3 bg-maroon-600 hover:bg-maroon-700 text-beige-50 font-semibold text-base rounded-xl transition-all duration-300 hover:scale-105"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-maroon-600 to-maroon-700 hover:from-maroon-700 hover:to-maroon-800 text-beige-50 font-bold text-base rounded-xl shadow-lg shadow-maroon-600/30 transition-all duration-300"
                 >
                   Get Started
                   <ArrowRight className="w-4 h-4" />
@@ -140,21 +237,65 @@ export default function Navbar() {
         <div className="md:hidden fixed inset-0 top-16 z-40 bg-black/95 backdrop-blur-xl">
           <div className="flex flex-col items-center justify-center h-full gap-2 px-6">
             {links.map((link, idx) => (
-              <NavLink
-                key={link.to}
-                to={link.to}
-                onClick={() => setMobileMenuOpen(false)}
-                className={({ isActive }) =>
-                  `text-xl font-semibold transition-all ${
-                    isActive ? 'text-maroon-400' : 'text-beige-200 hover:text-beige-100'
-                  }`
-                }
-                style={{
-                  animation: `slideInLeft 0.6s ease-out ${idx * 0.1}s backwards`
-                }}
-              >
-                {link.label}
-              </NavLink>
+              link.isHash ? (
+                <a
+                  key={link.to}
+                  href={link.to}
+                  onClick={(e) => {
+                    handleHashClick(e, link.to, link.section);
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`text-xl font-semibold transition-all ${
+                    activeSection === link.section && location.pathname === '/'
+                      ? 'text-maroon-400'
+                      : 'text-beige-200 hover:text-beige-100'
+                  }`}
+                  style={{
+                    animation: `slideInLeft 0.6s ease-out ${idx * 0.1}s backwards`
+                  }}
+                >
+                  {link.label}
+                </a>
+              ) : link.to === '/' ? (
+                <a
+                  key={link.to}
+                  href={link.to}
+                  onClick={(e) => {
+                    if (location.pathname === '/') {
+                      e.preventDefault();
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`text-xl font-semibold transition-all ${
+                    activeSection === 'home' && location.pathname === '/'
+                      ? 'text-maroon-400'
+                      : 'text-beige-200 hover:text-beige-100'
+                  }`}
+                  style={{
+                    animation: `slideInLeft 0.6s ease-out ${idx * 0.1}s backwards`
+                  }}
+                >
+                  {link.label}
+                </a>
+              ) : (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  end={link.exact}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `text-xl font-semibold transition-all ${
+                      isActive ? 'text-maroon-400' : 'text-beige-200 hover:text-beige-100'
+                    }`
+                  }
+                  style={{
+                    animation: `slideInLeft 0.6s ease-out ${idx * 0.1}s backwards`
+                  }}
+                >
+                  {link.label}
+                </NavLink>
+              )
             ))}
             
             {isAuthenticated ? (

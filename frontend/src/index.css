@@ -8,12 +8,17 @@
 
 html, body, #root {
   height: 100%;
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
 body {
   @apply bg-black text-beige-100 antialiased;
   font-family: 'Inter', system-ui, sans-serif;
   background: linear-gradient(135deg, #000000 0%, #1A0F0A 100%);
+}
+
+* {
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
 .app-container {
