@@ -24,6 +24,9 @@ RUN pip install --no-cache-dir --retries 5 --default-timeout=1000 -r /app/requir
 # Copy application code
 COPY backend/ /app
 
+# Copy ML models
+COPY ml-service/ /app/ml-service/
+
 # Create directories for model mount points (will be mounted at runtime)
 RUN mkdir -p /app/ml-service/models /app/ml-service/trained_models
 
