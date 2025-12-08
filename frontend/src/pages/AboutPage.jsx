@@ -4,6 +4,7 @@ import {
   Cpu,
   Shield,
   Github,
+  Linkedin,
   Award,
   Brain,
   Server,
@@ -16,8 +17,9 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import Iridescence from "../ui/Iridescence";
+import teamData from "../data/team.json";
 
-function TeamMemberCard({ avatar, name, role, idx }) {
+function TeamMemberCard({ avatar, name, role, github, linkedin, idx }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -60,6 +62,38 @@ function TeamMemberCard({ avatar, name, role, idx }) {
             </h3>
             <p className="text-sm text-beige-300">{role}</p>
           </div>
+
+          {/* Social Links */}
+          {(github || linkedin) && (
+            <div className="flex gap-2">
+              {github && (
+                <motion.a
+                  href={github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="p-2 bg-maroon-600/20 hover:bg-maroon-600/30 rounded-lg transition-all duration-300 border border-maroon-400/20 hover:border-maroon-400/40"
+                  aria-label="GitHub"
+                >
+                  <Github className="w-4 h-4 text-maroon-400" />
+                </motion.a>
+              )}
+              {linkedin && (
+                <motion.a
+                  href={linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="p-2 bg-maroon-600/20 hover:bg-maroon-600/30 rounded-lg transition-all duration-300 border border-maroon-400/20 hover:border-maroon-400/40"
+                  aria-label="LinkedIn"
+                >
+                  <Linkedin className="w-4 h-4 text-maroon-400" />
+                </motion.a>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </motion.div>
@@ -97,13 +131,7 @@ function TechStackBadge({ icon: Icon, name, category, idx }) {
 }
 
 export default function AboutPage() {
-  const team = [
-    { name: "Person 1", role: "ML Engineer", avatar: "/person1.png" },
-    { name: "Person 2", role: "Backend Developer", avatar: "/person2.png" },
-    { name: "Person 3", role: "Frontend Lead", avatar: "/person3.png" },
-    { name: "Person 4", role: "AI Specialist", avatar: "/person4.png" },
-    { name: "Person 5", role: "DevOps Engineer", avatar: "/person5.png" },
-  ];
+  const team = teamData.team;
 
   const techStack = [
     { name: "React", icon: Code2, category: "Frontend" },
@@ -346,6 +374,8 @@ export default function AboutPage() {
                   avatar={member.avatar}
                   name={member.name}
                   role={member.role}
+                  github={member.github}
+                  linkedin={member.linkedin}
                   idx={idx}
                 />
               ))}
