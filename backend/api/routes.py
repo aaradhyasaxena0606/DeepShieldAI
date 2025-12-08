@@ -67,17 +67,29 @@ async def analyze(file: UploadFile = File(...)):
         print(f"[Analyze] Prediction result: label={prediction_label}, confidence={confidence}")
 
         print("[Analyze] Getting RAG explanation...")
-        rag = rag_service.explain(prediction_label, confidence, features)
-        print(f"[Analyze] RAG explanation generated")
-
-        # Add error details if Gemini is not initialized
         error_details = None
-        if not rag_service.initialized:
-            error_details = "Gemini API not initialized. Please check API key configuration."
-            print(f"[Analyze] WARNING: {error_details}")
-        elif rag["ai_explanation"] == "Unable to generate detailed explanation at this time.":
-            error_details = "Gemini API request failed. Please check logs for details."
-            print(f"[Analyze] WARNING: {error_details}")
+        if rag_service is None:
+            # RAG service failed to initialize earlier; provide a safe default
+            print("[Analyze] WARNING: RAGService unavailable, using fallback explanation")
+            rag = {
+                "confidence_level": "UNKNOWN",
+                "ai_explanation": "Unable to generate detailed explanation at this time.",
+                "detected_patterns": [],
+                "recommendation": "No explanation available because RAG service is unavailable.",
+                "processing_time_ms": 0,
+            }
+            error_details = "RAGService unavailable. Please check Gemini API configuration."
+        else:
+            rag = rag_service.explain(prediction_label, confidence, features)
+            print(f"[Analyze] RAG explanation generated")
+
+            # Add error details if Gemini is not initialized or if the RAG call failed
+            if not getattr(rag_service, 'initialized', False):
+                error_details = "Gemini API not initialized. Please check API key configuration."
+                print(f"[Analyze] WARNING: {error_details}")
+            elif rag.get("ai_explanation") == "Unable to generate detailed explanation at this time.":
+                error_details = "Gemini API request failed. Please check logs for details."
+                print(f"[Analyze] WARNING: {error_details}")
 
         print("[Analyze] SUCCESS: Analysis completed")
         return AnalysisResponse(
