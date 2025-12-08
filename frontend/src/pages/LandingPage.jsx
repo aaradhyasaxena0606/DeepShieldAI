@@ -83,7 +83,7 @@ export default function LandingPage() {
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 <Link 
-                  to="/analyze"
+                  to="/signup"
                   className="group relative px-8 py-4 bg-maroon-600 hover:bg-maroon-700 text-beige-50 font-semibold text-base rounded-xl shadow-2xl hover:shadow-maroon-600/50 transition-all duration-300 hover:scale-105"
                 >
                   <span className="relative z-10 flex items-center gap-2">
@@ -183,7 +183,7 @@ export default function LandingPage() {
                 Join thousands of users protecting themselves from voice fraud with AI-powered detection.
               </p>
               <Link
-                to="/analyze"
+                to="/signup"
                 className="inline-flex items-center gap-2 px-8 py-4 bg-maroon-600 hover:bg-maroon-700 text-beige-50 font-semibold text-base rounded-xl shadow-lg hover:shadow-maroon-600/50 transition-all duration-300 hover:scale-105"
               >
                 Start Analyzing

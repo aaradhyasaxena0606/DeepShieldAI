@@ -1,0 +1,161 @@
+1. Fix your preprocessing mismatch
+
+This is the #1 cause of failure.
+
+Your training pipeline probably used:
+
+Fixed sampling rate
+
+Normalization
+
+128×128 mel-spectrograms
+
+3-channel mel features (from mel_3ch)
+
+A specific window size & hop length
+
+But the new file you test is probably:
+
+Different sample rate
+
+Different loudness
+
+Different silence trimming
+
+Different mel settings
+
+Different channel structure
+
+If the preprocessing isn’t pixel-perfect identical, the model can’t generalize.
+
+✔ If you want, I can generate a single inference function where the entire preprocessing pipeline is identical to training, so the model never gets confused.
+
+2. Your dataset is too “closed-world”
+
+Most fake/real datasets on Kaggle share:
+
+same mic
+
+same speakers
+
+same environment
+
+same audio cleaning
+
+same splitting patterns
+
+The model ends up memorizing dataset signatures, not voice signatures.
+
+Fix:
+✔ Add diverse real voices
+✔ Add multiple types of fake voices
+✔ Add noisy + reverberant + clipped versions of all samples
+✔ Mix male/female/child speakers
+✔ Mix languages
+
+You basically teach the model that “real” has infinite shapes, but “fake” has a pattern.
+
+3. Add augmentation
+
+This is the easiest win.
+
+Audio augmentations:
+
+background noise (white, street, cafe)
+
+pitch shift
+
+time stretch
+
+random gain
+
+reverb
+
+frequency masking (SpecAugment)
+
+time masking
+
+random crops
+
+This will drastically reduce overfitting.
+
+If you want, I can drop a full data augmentation block for your training script — plug-and-play.
+
+4. Use embeddings instead of raw CNN
+
+Right now your CNN is learning from scratch — meaning it’s reinventing the wheel with a small dataset.
+
+Instead, use a pretrained audio encoder:
+
+YAMNet
+
+Wav2Vec 2.0
+
+AST (Audio Spectrogram Transformer)
+
+Then feed those embeddings into a classifier.
+
+These models already know:
+
+different accents
+
+different noises
+
+different mic conditions
+
+different environments
+
+Your classifier only has to learn “fake vs real,” not “how does sound work.”
+
+If you want, I can build a classifier using YAMNet in 30 lines of Colab code.
+
+5. Try a simpler sanity check:
+
+Ask your model to classify:
+
+a sine wave
+
+silence
+
+a random YouTube speech extract
+
+If it returns “fake” on all of them:
+
+the model is not learning audio patterns,
+
+it’s memorizing dataset artifacts.
+
+6. You might need threshold tuning
+
+Sometimes the model outputs low probabilities for new audio (because it’s unfamiliar), and your fixed threshold of 0.5 fails.
+
+Fix:
+✔ Use ROC curve to compute the best threshold
+✔ Or use dynamic thresholding like entropy-based decision
+
+7. Validation leakage
+
+If your dataset wasn't split carefully, the model may have accidentally “seen” parts of your validation subjects.
+
+Real test:
+✔ split by speaker, not by file.
+
+Alright — here’s the practical path forward
+
+You don’t need to fix everything at once.
+Just choose one of these and we can build it out:
+
+🔹 A) You want the correct inference pipeline?
+(same preprocessing → correct predictions)
+
+🔹 B) You want augmentation added to your training?
+(fixes overfitting fast)
+
+🔹 C) You want a pretrained model setup?
+(the strongest fix)
+
+🔹 D) You want me to help expand/clean your dataset?
+
+Pick one direction, and I’ll build the code cells for you in your Colab style.
+
+Which way do you want to attack this?
