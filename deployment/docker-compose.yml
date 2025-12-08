@@ -7,19 +7,27 @@ services:
     build:
       context: ../backend
       dockerfile: Dockerfile
-    command: uvicorn main:app --host 0.0.0.0 --port 8000
+    container_name: voiceguard-backend
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
     volumes:
       - ../backend:/app
       - ../ml-service:/app/ml-service
     ports:
       - "8000:8000"
+    environment:
+      - GOOGLE_AI_STUDIO_KEY=${GOOGLE_AI_STUDIO_KEY}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}
+      - PORT=8000
     env_file:
       - .env
+    networks:
+      - voiceguard-network
 
   frontend:
     build:
       context: ../frontend
       dockerfile: Dockerfile
+    container_name: voiceguard-frontend
     command: npm run dev -- --host
     volumes:
       - ../frontend:/app
@@ -28,5 +36,11 @@ services:
       - "5173:5173"
     environment:
       - VITE_API_BASE_URL=http://localhost:8000
+    networks:
+      - voiceguard-network
     depends_on:
       - backend
+
+networks:
+  voiceguard-network:
+    driver: bridge

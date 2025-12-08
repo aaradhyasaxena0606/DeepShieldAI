@@ -1,5 +1,5 @@
 # VoiceGuard AI Frontend - Dockerfile
-FROM node:20-alpine
+FROM node:18-alpine
 
 # Set working directory
 WORKDIR /app

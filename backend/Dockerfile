@@ -14,11 +14,15 @@ RUN apt-get update && apt-get install -y \
 # Copy requirements first to leverage Docker cache
 COPY requirements.txt .
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Python dependencies with retry logic
+RUN pip install --no-cache-dir --retries 5 --default-timeout=1000 -r requirements.txt || \
+    pip install --no-cache-dir --retries 5 --default-timeout=1000 -r requirements.txt
 
 # Copy application code
 COPY . .
+
+# Create necessary directories for ML models
+RUN mkdir -p /app/ml-service/models /app/ml-service/trained_models
 
 # Expose port
 EXPOSE 8000
