@@ -13,6 +13,7 @@ import {
   updateProfile
 } from 'firebase/auth';
 import { auth, googleProvider } from '../config/firebase';
+import { initializeUserProfile } from '../config/firestorePaths';
 
 const AuthContext = createContext();
 
@@ -34,6 +35,8 @@ export function AuthProvider({ children }) {
     if (displayName && userCredential.user) {
       await updateProfile(userCredential.user, { displayName });
     }
+    // Initialize user profile in Firestore
+    await initializeUserProfile(userCredential.user.uid, email, displayName, 'email');
     return userCredential;
   }
 
@@ -43,8 +46,12 @@ export function AuthProvider({ children }) {
   }
 
   // Login with Google
-  function loginWithGoogle() {
-    return signInWithPopup(auth, googleProvider);
+  async function loginWithGoogle() {
+    const userCredential = await signInWithPopup(auth, googleProvider);
+    // Initialize user profile in Firestore for new Google users
+    const user = userCredential.user;
+    await initializeUserProfile(user.uid, user.email, user.displayName, 'google');
+    return userCredential;
   }
 
   // Logout

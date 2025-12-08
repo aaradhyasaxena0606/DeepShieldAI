@@ -6,8 +6,10 @@
 
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { History, FileAudio, Calendar, TrendingUp, Eye, Trash2, ArrowRight } from 'lucide-react';
+import { History, FileAudio, Calendar, TrendingUp, Eye, Trash2, ArrowRight, AlertCircle } from 'lucide-react';
 import { DetectionBadge } from '../components/DetectionBadge';
+import { useAuth } from '../contexts/AuthContext';
+import { getUserAnalyses, deleteAnalysis, deleteAllAnalyses } from '../config/firestorePaths';
 import Iridescence from '../ui/Iridescence';
 
 function EmptyState({ icon: Icon, heading, description, ctaLabel, ctaLink }) {
@@ -53,30 +55,87 @@ function StatsCard({ icon: Icon, value, label }) {
 
 export default function HistoryPage() {
   const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { currentUser } = useAuth();
 
+  // Fetch analyses from Firestore
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('voiceguard_history');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        setHistory(parsed);
+    const fetchHistory = async () => {
+      if (!currentUser) {
+        setLoading(false);
+        return;
       }
-    } catch (e) {
-      console.error('Failed to load history:', e);
-    }
-  }, []);
 
-  const clearHistory = () => {
-    if (window.confirm('Are you sure you want to clear all analysis history?')) {
+      try {
+        setLoading(true);
+        const analyses = await getUserAnalyses(currentUser.uid);
+        setHistory(analyses);
+        setError(null);
+      } catch (err) {
+        console.error('Failed to load history:', err);
+        setError('Failed to load analysis history. Please try again.');
+        // Fallback to localStorage
+        try {
+          const stored = localStorage.getItem('voiceguard_history');
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            setHistory(parsed);
+          }
+        } catch (e) {
+          console.error('Failed to load history from localStorage:', e);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHistory();
+  }, [currentUser]);
+
+  const clearHistory = async () => {
+    if (!window.confirm('Are you sure you want to clear all analysis history?')) {
+      return;
+    }
+
+    try {
+      if (currentUser) {
+        await deleteAllAnalyses(currentUser.uid);
+      }
+      // Also clear localStorage
       localStorage.removeItem('voiceguard_history');
       setHistory([]);
+      setError(null);
+    } catch (err) {
+      console.error('Failed to clear history:', err);
+      setError('Failed to clear history. Please try again.');
     }
   };
 
-  const deleteItem = (index) => {
-    const newHistory = history.filter((_, i) => i !== index);
-    setHistory(newHistory);
-    localStorage.setItem('voiceguard_history', JSON.stringify(newHistory));
+  const deleteItem = async (analysisId) => {
+    if (!window.confirm('Are you sure you want to delete this analysis?')) {
+      return;
+    }
+
+    try {
+      if (currentUser) {
+        await deleteAnalysis(currentUser.uid, analysisId);
+      }
+      // Update local state
+      setHistory((prev) => prev.filter((item) => item.id !== analysisId));
+      
+      // Also remove from localStorage
+      const stored = localStorage.getItem('voiceguard_history');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        const filtered = parsed.filter((_, i) => i !== history.findIndex((h) => h.id === analysisId));
+        localStorage.setItem('voiceguard_history', JSON.stringify(filtered));
+      }
+      setError(null);
+    } catch (err) {
+      console.error('Failed to delete analysis:', err);
+      setError('Failed to delete analysis. Please try again.');
+    }
   };
 
   return (
@@ -89,6 +148,14 @@ export default function HistoryPage() {
       {/* Content */}
       <div className="relative z-10 min-h-screen py-12 px-4">
         <div className="max-w-5xl mx-auto space-y-8">
+          {/* Error Toast */}
+          {error && (
+            <div className="glass-card bg-red-600/20 border-l-4 border-l-red-500 p-6 flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-red-300">{error}</p>
+            </div>
+          )}
+
           {/* Header */}
           <div className="space-y-4 animate-fade-in">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-black/40 backdrop-blur-lg border border-beige-200/20 rounded-full mb-4">
@@ -121,7 +188,12 @@ export default function HistoryPage() {
           </div>
 
           {/* History List or Empty State */}
-          {history.length === 0 ? (
+          {loading ? (
+            <div className="glass-card p-12 shadow-2xl flex flex-col items-center justify-center animate-slide-up">
+              <div className="spinner w-8 h-8 border-2 border-maroon-400/30 border-t-maroon-400 rounded-full mb-4" />
+              <p className="text-beige-300">Loading your analysis history...</p>
+            </div>
+          ) : history.length === 0 ? (
             <div className="glass-card p-8 shadow-2xl animate-slide-up">
               <EmptyState
                 icon={FileAudio}
@@ -137,7 +209,7 @@ export default function HistoryPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-slide-up">
                 {history.map((item, index) => (
                   <div 
-                    key={index}
+                    key={item.id || index}
                     className="glass-card p-6 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group"
                     style={{ animation: `slideUp 0.8s ease-out ${index * 0.05}s backwards` }}
                   >
@@ -153,13 +225,17 @@ export default function HistoryPage() {
                           </h3>
                           <div className="flex items-center gap-2 text-xs text-beige-300 mt-1">
                             <Calendar className="w-3 h-3 flex-shrink-0" />
-                            <span>{new Date(item.timestamp).toLocaleString()}</span>
+                            <span>
+                              {item.createdAt
+                                ? new Date(item.createdAt.seconds ? item.createdAt.seconds * 1000 : item.createdAt).toLocaleString()
+                                : new Date(item.timestamp).toLocaleString()}
+                            </span>
                           </div>
                         </div>
                       </div>
 
                       <button
-                        onClick={() => deleteItem(index)}
+                        onClick={() => deleteItem(item.id || index)}
                         className="p-2 hover:bg-maroon-600/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
                         title="Delete"
                       >

@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { saveAnalysisToFirestore } from "../config/firestorePaths";
 import { Waveform } from "./Waveform";
 
 export function AudioUploader() {
@@ -25,6 +27,7 @@ export function AudioUploader() {
   const [progress, setProgress] = useState(0);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
 
   const validateFile = (file) => {
     const validTypes = ["audio/wav", "audio/mpeg", "audio/mp3"];
@@ -59,6 +62,14 @@ export function AudioUploader() {
 
   const handleAnalyze = async () => {
     if (!file) return;
+
+    // Check if user is authenticated
+    if (!currentUser) {
+      setError("Please log in to analyze audio.");
+      setTimeout(() => setError(null), 5000);
+      return;
+    }
+
     setLoading(true);
     setProgress(0);
 
@@ -82,7 +93,20 @@ export function AudioUploader() {
       clearInterval(progressInterval);
       setProgress(100);
 
-      // Save to history
+      // Save to Firestore
+      try {
+        const firestoreRecord = await saveAnalysisToFirestore(
+          currentUser.uid,
+          data,
+          file.name
+        );
+        console.log("Analysis saved to Firestore:", firestoreRecord);
+      } catch (firestoreError) {
+        console.error("Error saving to Firestore:", firestoreError);
+        // Continue even if Firestore save fails - still show results to user
+      }
+
+      // Also save to localStorage as backup
       const history = JSON.parse(
         localStorage.getItem("voiceguard_history") || "[]"
       );
