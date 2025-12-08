@@ -87,17 +87,17 @@ export default function LandingPage() {
                   className="group relative px-8 py-4 bg-maroon-600 hover:bg-maroon-700 text-beige-50 font-semibold text-base rounded-xl shadow-2xl hover:shadow-maroon-600/50 transition-all duration-300 hover:scale-105"
                 >
                   <span className="relative z-10 flex items-center gap-2">
-                    Try Now - It's Free
-                    <Zap className="w-5 h-5 group-hover:animate-pulse" />
+                    Sign up
+                    
                   </span>
                 </Link>
                 
-                <a 
-                  href="#features"
+                <Link 
+                  to="/login"
                   className="px-8 py-4 bg-black/40 backdrop-blur-lg hover:bg-black/60 text-beige-100 font-semibold text-base rounded-xl border border-beige-200/20 transition-all duration-300 hover:scale-105"
                 >
-                  Learn More
-                </a>
+                  Login
+                </Link>
               </div>
             </div>
           </div>
