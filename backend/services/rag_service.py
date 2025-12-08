@@ -130,13 +130,19 @@ Detection Result:
 Detected Patterns:
 {pattern_details}
 
-Provide a natural, conversational explanation covering:
+Write a complete 2-3 paragraph explanation covering:
 1. Why this audio was classified as {prediction.upper()}
 2. What the detected patterns reveal about authenticity
 3. Key technical characteristics identified
 4. Important limitations and caveats
 
-Format your response as plain text paragraphs without any markdown formatting (no **, ##, bullets, or special characters). Write in a direct, professional tone without introducing yourself or restating the detection results. Keep it under 300 words and ensure the response is complete.
+Requirements:
+- Use plain text only, no markdown formatting
+- Do not use asterisks, hashtags, or special formatting characters
+- Write in a direct, professional tone without introducing yourself
+- Do NOT restate the detection results
+- Write complete sentences and finish all thoughts
+- Aim for 250-300 words total
 """
         
         # Prepare the request for Google AI Studio API
@@ -157,9 +163,10 @@ Format your response as plain text paragraphs without any markdown formatting (n
             }],
             "generationConfig": {
                 "temperature": 0.5,
-                "maxOutputTokens": 800,
+                "maxOutputTokens": 2048,
                 "topP": 0.9,
-                "topK": 40
+                "topK": 40,
+                "stopSequences": []
             }
         }
         
