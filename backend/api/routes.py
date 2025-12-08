@@ -60,15 +60,16 @@ async def analyze(file: UploadFile = File(...)):
         print("[Analyze] Extracting audio features...")
         features = extract_features(data)
         print(f"[Analyze] Features extracted successfully")
-        
+
         print("[Analyze] Running model prediction...")
         prediction_label, confidence, raw_vector = model_service.predict(features)
+        used_placeholder = getattr(model_service, '_allow_placeholder', False)
         print(f"[Analyze] Prediction result: label={prediction_label}, confidence={confidence}")
-        
+
         print("[Analyze] Getting RAG explanation...")
         rag = rag_service.explain(prediction_label, confidence, features)
         print(f"[Analyze] RAG explanation generated")
-        
+
         # Add error details if Gemini is not initialized
         error_details = None
         if not rag_service.initialized:
@@ -77,7 +78,7 @@ async def analyze(file: UploadFile = File(...)):
         elif rag["ai_explanation"] == "Unable to generate detailed explanation at this time.":
             error_details = "Gemini API request failed. Please check logs for details."
             print(f"[Analyze] WARNING: {error_details}")
-        
+
         print("[Analyze] SUCCESS: Analysis completed")
         return AnalysisResponse(
             prediction=prediction_label,
@@ -87,7 +88,8 @@ async def analyze(file: UploadFile = File(...)):
             detected_patterns=rag["detected_patterns"],
             recommendation=rag["recommendation"],
             processing_time_ms=rag.get("processing_time_ms", 0),
-            error_details=error_details
+            error_details=error_details,
+            used_placeholder=used_placeholder,
         )
     except Exception as e:
         error_msg = f"Analysis failed: {str(e)}"

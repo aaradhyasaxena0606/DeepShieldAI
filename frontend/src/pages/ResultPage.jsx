@@ -77,6 +77,7 @@ function PatternTag({ name }) {
 export default function ResultPage() {
   const { state } = useLocation();
   const data = state?.data;
+  const usedPlaceholder = data?.used_placeholder || false;
 
   if (!data) {
     return (
@@ -173,13 +174,25 @@ export default function ResultPage() {
                   File: {data.filename}
                 </p>
               )}
+
+              {usedPlaceholder && (
+                <div className="mt-4 max-w-xl mx-auto">
+                  <AlertBox
+                    variant="warning"
+                    title="Model not loaded — placeholder prediction"
+                    description={
+                      "The backend returned a placeholder prediction because the ML model or TensorFlow was unavailable. Confidence values are approximate and not production-grade."
+                    }
+                  />
+                </div>
+              )}
             </div>
 
             {/* Large Badge with Animation */}
             <div
               className={`inline-block ${
                 confidence > 0.85 ? "animate-pulse-slow" : ""
-              }`}
+              } ${usedPlaceholder ? "opacity-70 grayscale" : ""}`}
             >
               <DetectionBadge
                 prediction={data.prediction}
@@ -190,8 +203,24 @@ export default function ResultPage() {
           </div>
 
           {/* Confidence Gauge */}
-          <div className="glass-card p-8 shadow-2xl animate-slide-up">
-            <ConfidenceGauge confidence={confidence} size="large" />
+          <div
+            className={`glass-card p-8 shadow-2xl animate-slide-up ${
+              usedPlaceholder ? "opacity-70" : ""
+            }`}
+          >
+            {!usedPlaceholder ? (
+              <ConfidenceGauge confidence={confidence} size="large" />
+            ) : (
+              <div className="text-center py-8">
+                <div className="text-xl font-semibold text-beige-100 mb-2">
+                  Placeholder Prediction
+                </div>
+                <div className="text-sm text-beige-200/80">
+                  Confidence withheld because the backend is using a placeholder
+                  model.
+                </div>
+              </div>
+            )}
           </div>
 
           {/* AI Explanation Card */}
