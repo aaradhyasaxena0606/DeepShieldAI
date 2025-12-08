@@ -4,31 +4,35 @@
 // Render <Navbar /> at top, <Routes> in middle, <Footer /> at bottom with dark background layout
 // Wrap app in AuthProvider for authentication state management
 
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "./contexts/AuthContext.jsx";
-import Navbar from "./components/Navbar.jsx";
-import { Footer } from "./components/Footer.jsx";
-import { ToastContainer } from "./components/Toast.jsx";
-import ProtectedRoute from "./components/ProtectedRoute.jsx";
-import LandingPage from "./pages/LandingPage.jsx";
-import HomePage from "./pages/HomePage.jsx";
-import AnalyzePage from "./pages/AnalyzePage.jsx";
-import AnalyzeVideoPage from "./pages/AnalyzeVideoPage.jsx";
-import AnalyzeLivePage from "./pages/AnalyzeLivePage.jsx";
-import ResultPage from "./pages/ResultPage.jsx";
-import HistoryPage from "./pages/HistoryPage.jsx";
-import AboutPage from "./pages/AboutPage.jsx";
-import LoginPage from "./pages/LoginPage.jsx";
-import SignupPage from "./pages/SignupPage.jsx";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage.jsx";
-import Profile from "./pages/Profile.jsx";
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider } from './contexts/AuthContext.jsx'
+import { LiveMonitorProvider } from './contexts/LiveMonitorContext.jsx'
+import Navbar from './components/Navbar.jsx'
+import { Footer } from './components/Footer.jsx'
+import { ToastContainer } from './components/Toast.jsx'
+import { LiveMonitorWidget } from './components/LiveMonitorWidget.jsx'
+import ProtectedRoute from './components/ProtectedRoute.jsx'
+import LandingPage from './pages/LandingPage.jsx'
+import HomePage from './pages/HomePage.jsx'
+import AnalyzePage from './pages/AnalyzePage.jsx'
+import AnalyzeVideoPage from './pages/AnalyzeVideoPage.jsx'
+import AnalyzeLivePage from './pages/AnalyzeLivePage.jsx'
+import ResultPage from './pages/ResultPage.jsx'
+import HistoryPage from './pages/HistoryPage.jsx'
+import AboutPage from './pages/AboutPage.jsx'
+import LoginPage from './pages/LoginPage.jsx'
+import SignupPage from './pages/SignupPage.jsx'
+import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx'
+import Profile from './pages/Profile.jsx'
 
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <ToastContainer />
-        <div className="app-container">
+        <LiveMonitorProvider>
+          <ToastContainer />
+          <LiveMonitorWidget />
+          <div className="app-container">
           <Navbar />
           <main className="flex-1 h-full w-full bg-fixed mx-auto">
             <Routes>
@@ -103,6 +107,7 @@ function App() {
           </main>
           <Footer />
         </div>
+        </LiveMonitorProvider>
       </AuthProvider>
     </BrowserRouter>
   );

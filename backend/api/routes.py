@@ -43,7 +43,13 @@ except Exception as e:
 async def analyze(file: UploadFile = File(...)):
     print(f"[Analyze] Received file: {file.filename}, content_type: {file.content_type}")
     
-    if file.content_type not in ("audio/wav", "audio/x-wav", "audio/mpeg"):
+    # Support both regular audio files and WebM from live monitoring
+    valid_audio_types = (
+        "audio/wav", "audio/x-wav", "audio/mpeg", "audio/mp3",
+        "audio/webm", "audio/webm;codecs=opus"
+    )
+    
+    if file.content_type not in valid_audio_types:
         print(f"[Analyze] ERROR: Unsupported file type: {file.content_type}")
         raise HTTPException(status_code=400, detail="Unsupported file type")
     
@@ -64,6 +70,8 @@ async def analyze(file: UploadFile = File(...)):
         try:
             shape = getattr(mel, 'shape', None)
             print(f"[Analyze] Features extracted successfully. mel_spectrogram shape: {shape}")
+            print(f"[Analyze] mel_spectrogram dtype: {mel.dtype if hasattr(mel, 'dtype') else 'unknown'}")
+            print(f"[Analyze] mel_spectrogram min: {mel.min() if hasattr(mel, 'min') else 'unknown'}, max: {mel.max() if hasattr(mel, 'max') else 'unknown'}")
         except Exception:
             print("[Analyze] Features extracted successfully. mel_spectrogram shape: unknown")
 

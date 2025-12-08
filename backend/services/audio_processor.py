@@ -5,13 +5,17 @@
 import io
 import numpy as np
 from scipy.ndimage import zoom
+import tempfile
+import os
 
 try:
     import librosa
     import soundfile as sf
+    from pydub import AudioSegment
 except ImportError:
     librosa = None
     sf = None
+    AudioSegment = None
 
 TARGET_SR = 16000
 DURATION = 2.0
@@ -23,29 +27,82 @@ def extract_features(raw_bytes: bytes):
     """
     Load audio and produce (1,128,128,3) tensor matching training pipeline.
     Uses 3 channels: mel-spectrogram, delta, and delta-delta.
+    Handles WAV, MP3, and WebM formats.
     """
     target_length = int(TARGET_SR * DURATION)
     
     # Robust load: try soundfile first, fallback to librosa
+    audio = None
+    sr = None
+    
+    # Use pydub to convert to WAV first (matches Colab approach)
+    print("[AudioProcessor] Converting audio with pydub...")
     try:
-        audio_buf = io.BytesIO(raw_bytes)
-        audio, sr = sf.read(audio_buf)
-        # If stereo, convert to mono
-        if audio.ndim > 1:
-            audio = np.mean(audio, axis=1)
-        # Resample if needed
-        if sr != TARGET_SR:
-            audio = librosa.resample(audio.astype(np.float32), orig_sr=sr, target_sr=TARGET_SR)
-            sr = TARGET_SR
-    except Exception as e_sf:
+        # Load with pydub (handles WebM, MP3, etc. via ffmpeg)
+        audio_segment = AudioSegment.from_file(io.BytesIO(raw_bytes))
+        
+        # Convert to mono if stereo
+        if audio_segment.channels > 1:
+            print(f"[AudioProcessor] Converting {audio_segment.channels} channels to mono")
+            audio_segment = audio_segment.set_channels(1)
+        
+        # Convert to target sample rate
+        if audio_segment.frame_rate != TARGET_SR:
+            print(f"[AudioProcessor] Resampling from {audio_segment.frame_rate}Hz to {TARGET_SR}Hz")
+            audio_segment = audio_segment.set_frame_rate(TARGET_SR)
+        
+        # Export to WAV in memory
+        wav_buffer = io.BytesIO()
+        audio_segment.export(wav_buffer, format="wav")
+        wav_buffer.seek(0)
+        
+        # Now read the WAV with soundfile
+        audio, sr = sf.read(wav_buffer, dtype='float32')
+        print(f"[AudioProcessor] Loaded via pydub+soundfile: sr={sr}, shape={audio.shape}")
+        
+    except Exception as e_pydub:
+        print(f"[AudioProcessor] pydub conversion failed: {e_pydub}, trying soundfile...")
         try:
+            # Fallback: Try soundfile first (handles WAV, FLAC, OGG well)
             audio_buf = io.BytesIO(raw_bytes)
-            audio, sr = librosa.load(audio_buf, sr=TARGET_SR)
-        except Exception as e_lb:
-            raise RuntimeError(f"Failed to load audio with soundfile ({e_sf}) and librosa ({e_lb}).")
+            audio, sr = sf.read(audio_buf)
+            print(f"[AudioProcessor] Loaded with soundfile: sr={sr}, shape={audio.shape if hasattr(audio, 'shape') else len(audio)}")
+            
+            # If stereo, convert to mono
+            if audio.ndim > 1:
+                audio = np.mean(audio, axis=1)
+                print(f"[AudioProcessor] Converted stereo to mono")
+                
+            # Resample if needed
+            if sr != TARGET_SR:
+                print(f"[AudioProcessor] Resampling from {sr} to {TARGET_SR}")
+                audio = librosa.resample(audio.astype(np.float32), orig_sr=sr, target_sr=TARGET_SR)
+                sr = TARGET_SR
+                
+        except Exception as e_sf:
+            print(f"[AudioProcessor] soundfile also failed: {e_sf}, trying librosa...")
+            try:
+                # Last fallback: librosa (handles MP3, WebM, many formats via ffmpeg/audioread)
+                audio_buf = io.BytesIO(raw_bytes)
+                audio, sr = librosa.load(audio_buf, sr=TARGET_SR)
+                print(f"[AudioProcessor] Loaded with librosa: sr={sr}, shape={audio.shape if hasattr(audio, 'shape') else len(audio)}")
+            except Exception as e_lb:
+                print(f"[AudioProcessor] All methods failed. pydub: {e_pydub}, soundfile: {e_sf}, librosa: {e_lb}")
+                raise RuntimeError(
+                    f"Failed to load audio with all methods. "
+                    f"Make sure ffmpeg is installed for WebM support."
+                )
     
     # Ensure float32
     audio = audio.astype(np.float32)
+    
+    # Check if audio is silent (all zeros or very low amplitude)
+    audio_max = np.abs(audio).max()
+    audio_rms = np.sqrt(np.mean(audio**2))
+    print(f"[AudioProcessor] Audio stats: max={audio_max:.6f}, rms={audio_rms:.6f}")
+    
+    if audio_max < 0.001:
+        print(f"[AudioProcessor] WARNING: Audio is silent or nearly silent!")
     
     # Trim / pad to exact duration
     if len(audio) < target_length:
@@ -63,6 +120,8 @@ def extract_features(raw_bytes: bytes):
         power=2.0
     )
     mel_db = librosa.power_to_db(mel, ref=np.max)
+    
+    print(f"[AudioProcessor] mel_db shape before resize: {mel_db.shape}, min={mel_db.min():.2f}, max={mel_db.max():.2f}")
     
     # Resize to 128x128 using scipy.ndimage.zoom (bilinear interpolation)
     z_row = 128 / mel_db.shape[0]
@@ -89,6 +148,15 @@ def extract_features(raw_bytes: bytes):
     
     # Stack into 3-channel tensor and ensure float32
     mel_3ch = np.stack([c0, c1, c2], axis=-1).astype(np.float32)
+    
+    # Validate the output
+    print(f"[AudioProcessor] mel_3ch stats: min={mel_3ch.min():.6f}, max={mel_3ch.max():.6f}, mean={mel_3ch.mean():.6f}")
+    
+    if mel_3ch.max() == 0.0 or np.isnan(mel_3ch).any():
+        raise ValueError(
+            f"Invalid mel-spectrogram: all zeros or contains NaN. "
+            f"Audio might be silent or corrupted."
+        )
     
     # Final sanity check
     if mel_3ch.shape != (128, 128, 3):

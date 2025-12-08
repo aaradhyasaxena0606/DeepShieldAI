@@ -146,7 +146,14 @@ class ModelService:
         pred = np.asarray(prediction)
         if pred.ndim >= 2 and pred.shape[-1] == 1:
             prob_real = float(pred.ravel()[0])
-            if prob_real >= 0.5:
+            print(f"[ModelService] Raw prediction (sigmoid): {prob_real}")
+            
+            # Use threshold from environment or default to 0.5
+            # Lower threshold makes it more likely to detect FAKE
+            decision_threshold = float(os.getenv("DECISION_THRESHOLD", "0.5"))
+            print(f"[ModelService] Decision threshold: {decision_threshold}")
+            
+            if prob_real >= decision_threshold:
                 label = 'real'
                 confidence = prob_real
             else:
@@ -158,8 +165,9 @@ class ModelService:
             # Assume [fake, real] probabilities
             probs = pred.flatten().tolist()
             idx = int(np.argmax(pred))
-            label = 'fake' if idx == 1 else 'real'
+            label = 'real' if idx == 1 else 'fake'
             confidence = float(np.max(pred))
+            print(f"[ModelService] Raw prediction (softmax): probs={probs}, label={label}, confidence={confidence}")
             return label, confidence, probs
 
     def _placeholder_predict(self, features: dict):
