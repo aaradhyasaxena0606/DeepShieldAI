@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first to leverage Docker cache
-COPY requirements.txt /app/requirements.txt
+COPY backend/requirements.txt /app/requirements.txt
 
 # Install Python dependencies. TensorFlow is already present in the base image,
 # so pip will quickly skip or satisfy that requirement. Keep retry logic.
@@ -23,7 +23,7 @@ RUN pip install --no-cache-dir --retries 5 --default-timeout=1000 -r /app/requir
     pip install --no-cache-dir --retries 5 --default-timeout=1000 -r /app/requirements.txt
 
 # Copy application code
-COPY . /app
+COPY backend/ /app
 
 # Create directories for model mount points (will be mounted at runtime)
 RUN mkdir -p /app/ml-service/models /app/ml-service/trained_models
