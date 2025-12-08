@@ -31,7 +31,7 @@ export function ConfidenceGauge({ confidence = 0, size = 'large' }) {
   }, [confidence]);
 
   const pct = Math.min(Math.max(animatedValue, 0), 1);
-  const angle = pct * 180;
+  const angle = pct * 180; // 0 to 180 degrees for semicircle
   const percentage = (pct * 100).toFixed(1);
   
   const getColor = () => {
@@ -63,7 +63,7 @@ export function ConfidenceGauge({ confidence = 0, size = 'large' }) {
             strokeLinecap="round"
           />
           
-          {/* Tick marks */}
+          {/* Tick marks without numbers */}
           {[0, 25, 50, 75, 100].map((tick) => {
             const tickAngle = (tick / 100) * Math.PI;
             const x1 = 50 - 38 * Math.cos(tickAngle);
@@ -72,36 +72,24 @@ export function ConfidenceGauge({ confidence = 0, size = 'large' }) {
             const y2 = 45 - 42 * Math.sin(tickAngle);
             
             return (
-              <g key={tick}>
-                <line
-                  x1={x1}
-                  y1={y1}
-                  x2={x2}
-                  y2={y2}
-                  stroke="rgba(245, 245, 220, 0.3)"
-                  strokeWidth="2"
-                />
-                {[0, 50, 100].includes(tick) && (
-                  <text
-                    x={50 - 50 * Math.cos(tickAngle)}
-                    y={45 - 50 * Math.sin(tickAngle) + 5}
-                    fill="rgba(245, 245, 220, 0.5)"
-                    fontSize="6"
-                    textAnchor="middle"
-                  >
-                    {tick}%
-                  </text>
-                )}
-              </g>
+              <line
+                key={tick}
+                x1={x1}
+                y1={y1}
+                x2={x2}
+                y2={y2}
+                stroke="rgba(245, 245, 220, 0.3)"
+                strokeWidth="2"
+              />
             );
           })}
           
-          {/* Needle */}
+          {/* Needle - starts at left (0%) and moves clockwise to right (100%) */}
           <line
             x1="50"
             y1="45"
-            x2={50 - 35 * Math.cos(Math.PI - (angle * Math.PI) / 180)}
-            y2={45 - 35 * Math.sin(Math.PI - (angle * Math.PI) / 180)}
+            x2={50 + 35 * Math.cos((180 - angle) * Math.PI / 180)}
+            y2={45 - 35 * Math.sin((180 - angle) * Math.PI / 180)}
             stroke="#8B0000"
             strokeWidth="3"
             strokeLinecap="round"
