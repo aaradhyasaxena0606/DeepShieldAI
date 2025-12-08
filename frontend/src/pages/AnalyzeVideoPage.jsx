@@ -4,12 +4,75 @@
 // Spacing: p-6 cards, gap-6 grids, py-12 px-4 page
 // Animations: animate-fade-in, animate-slide-up, hover:scale-105
 
+
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
 import { Video, Upload, AlertCircle, Shield, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Iridescence from '../ui/Iridescence';
 
 export default function AnalyzeVideoPage() {
-  return (
+  const navigate = useNavigate();
+  const [videoFile, setVideoFile] = useState(null);
+  const [videoName, setVideoName] = useState('');
+  const [audioBlob, setAudioBlob] = useState(null);
+  const [extracting, setExtracting] = useState(false);
+  const [error, setError] = useState('');
+  const [analyzing, setAnalyzing] = useState(false);
+
+  const sendAudioForAnalysis = async () => {
+    if (!audioBlob) return;
+    setAnalyzing(true);
+    setError('');
+    try {
+      const formData = new FormData();
+      formData.append('file', audioBlob, 'audio.mp3');
+      const response = await fetch('/analyze', {
+        method: 'POST',
+        body: formData,
+      });
+      if (!response.ok) {
+        throw new Error('Analysis failed');
+      }
+      const result = await response.json();
+      navigate('/result', { state: { data: result } });
+    } catch (err) {
+      setError('Audio analysis failed.');
+    }
+    setAnalyzing(false);
+  };
+
+  const ffmpeg = createFFmpeg({ log: true });
+
+  const handleVideoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setVideoFile(file);
+      setVideoName(file.name);
+      setAudioBlob(null);
+      setError('');
+    }
+  };
+
+  const extractAudio = async () => {
+    if (!videoFile) return;
+    setExtracting(true);
+    setError('');
+    try {
+      if (!ffmpeg.isLoaded()) {
+        await ffmpeg.load();
+      }
+      ffmpeg.FS('writeFile', videoName, await fetchFile(videoFile));
+      await ffmpeg.run('-i', videoName, '-vn', '-acodec', 'mp3', 'output.mp3');
+      const data = ffmpeg.FS('readFile', 'output.mp3');
+      const audio = new Blob([data.buffer], { type: 'audio/mp3' });
+      setAudioBlob(audio);
+    } catch (err) {
+      setError('Audio extraction failed.');
+    }
+    setExtracting(false);
+  };
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-maroon-900 via-brown-900 to-black">
       {/* Iridescent Background */}
       <div className="absolute inset-0 z-0">
@@ -46,6 +109,53 @@ export default function AnalyzeVideoPage() {
             </p>
           </div>
 
+          {/* Video Upload Input */}
+          <div className="glass-card p-6 animate-fade-in flex flex-col items-center gap-4">
+            <label htmlFor="video-upload" className="text-sm font-semibold text-beige-100 mb-2 flex items-center gap-2">
+              <Upload className="w-5 h-5 text-maroon-400" />
+              Upload Video File
+            </label>
+            <input
+              id="video-upload"
+              type="file"
+              accept="video/mp4,video/mov,video/avi"
+              className="block w-full text-sm text-beige-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-maroon-600 file:text-beige-50 hover:file:bg-maroon-700"
+              onChange={handleVideoChange}
+            />
+            {videoName && (
+              <div className="text-xs text-beige-300 mt-2">Selected: {videoName}</div>
+            )}
+            {videoFile && (
+              <button
+                className="mt-4 px-6 py-2 bg-maroon-600 hover:bg-maroon-700 text-beige-50 font-semibold rounded-lg transition-all duration-300"
+                onClick={extractAudio}
+                disabled={extracting}
+              >
+                {extracting ? 'Extracting Audio...' : 'Extract Audio'}
+              </button>
+            )}
+            {audioBlob && (
+              <>
+                <audio controls src={URL.createObjectURL(audioBlob)} className="mt-4" />
+                <button
+                  className="mt-4 px-6 py-2 bg-maroon-600 hover:bg-maroon-700 text-beige-50 font-semibold rounded-lg transition-all duration-300"
+                  onClick={sendAudioForAnalysis}
+                  disabled={analyzing}
+                >
+                  {analyzing ? 'Analyzing...' : 'Analyze Audio'}
+                </button>
+              </>
+            )}
+            {analysisResult && (
+              <div className="mt-4 p-4 bg-black/30 rounded-lg text-beige-100">
+                <div className="font-bold mb-2">Analysis Result</div>
+                <pre className="text-xs whitespace-pre-wrap">{JSON.stringify(analysisResult, null, 2)}</pre>
+              </div>
+            )}
+            {error && (
+              <div className="text-xs text-red-400 mt-2">{error}</div>
+            )}
+          </div>
           {/* Info Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-slide-up">
             <div className="glass-card p-6 hover:scale-105 transition-all duration-300">
