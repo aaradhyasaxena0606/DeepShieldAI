@@ -7,6 +7,8 @@
 import { Link } from 'react-router-dom';
 import { Mic, Video, Radio, ArrowRight, Shield } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { getUserProfile } from '../config/firestorePaths';
+import { useState, useEffect } from 'react';
 import Iridescence from '../ui/Iridescence';
 
 function AnalysisCard({ to, icon: Icon, title, description, badge, delay = 0 }) {
@@ -49,6 +51,34 @@ function AnalysisCard({ to, icon: Icon, title, description, badge, delay = 0 }) 
 
 export default function HomePage() {
   const { currentUser } = useAuth();
+  const [analysisCount, setAnalysisCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch analysis count from Firestore
+  useEffect(() => {
+    const fetchAnalysisCount = async () => {
+      if (!currentUser) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const userProfile = await getUserProfile(currentUser.uid);
+        setAnalysisCount(userProfile?.analysisCount || 0);
+      } catch (err) {
+        console.error('Failed to load analysis count:', err);
+        // Fallback to localStorage
+        const stored = localStorage.getItem('voiceguard_history');
+        if (stored) {
+          setAnalysisCount(JSON.parse(stored).length);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAnalysisCount();
+  }, [currentUser]);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-maroon-900 via-brown-900 to-black">
@@ -112,7 +142,7 @@ export default function HomePage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="text-center">
                 <div className="text-4xl font-bold text-beige-100 mb-2">
-                  {JSON.parse(localStorage.getItem('voiceguard_history') || '[]').length}
+                  {loading ? '...' : analysisCount}
                 </div>
                 <div className="text-sm text-beige-300">Total Analyses</div>
               </div>
