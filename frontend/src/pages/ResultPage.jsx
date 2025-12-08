@@ -225,35 +225,35 @@ export default function ResultPage() {
 
           {/* AI Explanation Card */}
           <div
-            className="bg-beige-100 border border-beige-300 rounded-2xl p-8 shadow-2xl animate-slide-up"
+            className="glass-card p-8 shadow-2xl animate-slide-up"
             style={{ animationDelay: "0.1s" }}
           >
             <div className="flex items-start gap-4 mb-4">
               <div className="p-3 bg-maroon-600/20 rounded-xl flex-shrink-0">
                 {isFake ? (
-                  <XCircle className="w-6 h-6 text-maroon-600" />
+                  <XCircle className="w-6 h-6 text-maroon-400" />
                 ) : (
-                  <CheckCircle className="w-6 h-6 text-green-600" />
+                  <CheckCircle className="w-6 h-6 text-green-400" />
                 )}
               </div>
               <div>
-                <h2 className="text-xl md:text-2xl font-bold text-brown-800 mb-2">
+                <h2 className="text-xl md:text-2xl font-bold text-beige-100 mb-2">
                   AI Explanation
                 </h2>
-                <p className="text-sm text-brown-600">
+                <p className="text-sm text-beige-300">
                   Powered by Google Gemini
                 </p>
               </div>
             </div>
 
             <div className="prose prose-sm max-w-none">
-              <p className="text-base text-brown-800 leading-relaxed whitespace-pre-line">
+              <p className="text-base text-beige-200/80 leading-relaxed whitespace-pre-line">
                 {data.ai_explanation ||
                   "No explanation available. The model detected patterns in the audio but could not generate a detailed explanation."}
               </p>
               {!data.ai_explanation && data.error_details && (
-                <div className="mt-4 p-4 bg-yellow-50 border-l-4 border-l-yellow-500 rounded">
-                  <p className="text-sm text-yellow-700">
+                <div className="mt-4 p-4 glass-card bg-yellow-600/20 border-l-4 border-l-yellow-500">
+                  <p className="text-sm text-yellow-300">
                     The AI explanation service is currently unavailable. This
                     may be due to missing API configuration or temporary service
                     issues.
@@ -261,11 +261,11 @@ export default function ResultPage() {
                 </div>
               )}
               {data.error_details && (
-                <div className="mt-4 p-4 bg-red-50 border-l-4 border-l-red-500 rounded">
-                  <p className="text-sm text-red-700">
+                <div className="mt-4 p-4 glass-card bg-red-600/20 border-l-4 border-l-red-500">
+                  <p className="text-sm text-red-300">
                     <strong>Error Details:</strong> {data.error_details}
                   </p>
-                  <p className="text-xs text-red-600 mt-2">
+                  <p className="text-xs text-red-400 mt-2">
                     Check the browser console or server logs for more
                     information.
                   </p>
