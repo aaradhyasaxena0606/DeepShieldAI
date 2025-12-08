@@ -131,8 +131,7 @@ export default function HomePage() {
               to="/analyze-live"
               icon={Radio}
               title="Live Analysis"
-              description="Real-time deepfake detection with our browser extension. Analyze audio on any website as you browse."
-              badge="Beta"
+              description="Real-time monitoring of microphone or system audio. Analyzes every 10 seconds with instant deepfake alerts."
               delay={0.2}
             />
           </div>
