@@ -1,31 +1,35 @@
 # VoiceGuard AI Backend - Dockerfile
-# Use Python 3.9 base image for compatibility with ML packages
-FROM python:3.9-slim
+# Use an official TensorFlow CPU image as the base to avoid downloading the
+# large TensorFlow wheel during the build. This makes docker builds more
+# reliable on flaky connections and provides a tested runtime for TF-based
+# model loading.
+FROM tensorflow/tensorflow:2.16.1
 
-# Set working directory
+# Working directory
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
+# Install small set of system dependencies needed for some Python packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first to leverage Docker cache
-COPY requirements.txt .
+COPY requirements.txt /app/requirements.txt
 
-# Install Python dependencies with retry logic
-RUN pip install --no-cache-dir --retries 5 --default-timeout=1000 -r requirements.txt || \
-    pip install --no-cache-dir --retries 5 --default-timeout=1000 -r requirements.txt
+# Install Python dependencies. TensorFlow is already present in the base image,
+# so pip will quickly skip or satisfy that requirement. Keep retry logic.
+RUN pip install --no-cache-dir --retries 5 --default-timeout=1000 -r /app/requirements.txt || \
+    pip install --no-cache-dir --retries 5 --default-timeout=1000 -r /app/requirements.txt
 
 # Copy application code
-COPY . .
+COPY . /app
 
-# Create necessary directories for ML models
+# Create directories for model mount points (will be mounted at runtime)
 RUN mkdir -p /app/ml-service/models /app/ml-service/trained_models
 
-# Expose port
+# Expose port used by Uvicorn
 EXPOSE 8000
 
-# Run the application
+# Run the application (reload removed for container stability; use docker volumes for dev)
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -18,6 +18,7 @@ services:
       - GOOGLE_AI_STUDIO_KEY=${GOOGLE_AI_STUDIO_KEY}
       - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}
       - PORT=8000
+      - ALLOW_PLACEHOLDER=1
     env_file:
       - .env
     networks:

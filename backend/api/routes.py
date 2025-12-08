@@ -13,41 +13,72 @@ from api.schemas import AnalysisResponse
 router = APIRouter()
 
 # Try to initialize services
+print("[Routes] Attempting to initialize ModelService...")
 try:
     model_service = ModelService()
     MODEL_SERVICE_AVAILABLE = True
+    print("[Routes] SUCCESS: ModelService initialized")
 except Exception as e:
-    print(f"Model service initialization failed: {e}")
+    print(f"[Routes] ERROR: Model service initialization failed!")
+    print(f"[Routes] Exception type: {type(e).__name__}")
+    print(f"[Routes] Exception message: {e}")
+    import traceback
+    print(f"[Routes] Full traceback:")
+    traceback.print_exc()
     MODEL_SERVICE_AVAILABLE = False
     model_service = None
 
-rag_service = RAGService()
+print("[Routes] Attempting to initialize RAGService...")
+try:
+    rag_service = RAGService()
+    print("[Routes] SUCCESS: RAGService initialized")
+except Exception as e:
+    print(f"[Routes] ERROR: RAG service initialization failed: {e}")
+    import traceback
+    traceback.print_exc()
+    rag_service = None
 
 @router.post("/analyze", response_model=AnalysisResponse)
 async def analyze(file: UploadFile = File(...)):
+    print(f"[Analyze] Received file: {file.filename}, content_type: {file.content_type}")
+    
     if file.content_type not in ("audio/wav", "audio/x-wav", "audio/mpeg"):
+        print(f"[Analyze] ERROR: Unsupported file type: {file.content_type}")
         raise HTTPException(status_code=400, detail="Unsupported file type")
     
     # Check if model service is available
     if not MODEL_SERVICE_AVAILABLE:
-        raise HTTPException(
-            status_code=503, 
-            detail="ML model service unavailable. TensorFlow not installed or model not found. Please contact system administrator."
-        )
+        error_msg = "ML model service unavailable. TensorFlow not installed or model not found. Please contact system administrator."
+        print(f"[Analyze] ERROR: {error_msg}")
+        raise HTTPException(status_code=503, detail=error_msg)
     
     try:
+        print("[Analyze] Reading file data...")
         data = await file.read()
+        print(f"[Analyze] File read successfully, size: {len(data)} bytes")
+        
+        print("[Analyze] Extracting audio features...")
         features = extract_features(data)
+        print(f"[Analyze] Features extracted successfully")
+        
+        print("[Analyze] Running model prediction...")
         prediction_label, confidence, raw_vector = model_service.predict(features)
+        print(f"[Analyze] Prediction result: label={prediction_label}, confidence={confidence}")
+        
+        print("[Analyze] Getting RAG explanation...")
         rag = rag_service.explain(prediction_label, confidence, features)
+        print(f"[Analyze] RAG explanation generated")
         
         # Add error details if Gemini is not initialized
         error_details = None
         if not rag_service.initialized:
             error_details = "Gemini API not initialized. Please check API key configuration."
+            print(f"[Analyze] WARNING: {error_details}")
         elif rag["ai_explanation"] == "Unable to generate detailed explanation at this time.":
             error_details = "Gemini API request failed. Please check logs for details."
+            print(f"[Analyze] WARNING: {error_details}")
         
+        print("[Analyze] SUCCESS: Analysis completed")
         return AnalysisResponse(
             prediction=prediction_label,
             confidence=confidence,
@@ -59,7 +90,10 @@ async def analyze(file: UploadFile = File(...)):
             error_details=error_details
         )
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Analysis failed: {str(e)}"
-        )
+        error_msg = f"Analysis failed: {str(e)}"
+        print(f"[Analyze] ERROR: {error_msg}")
+        print(f"[Analyze] Exception type: {type(e).__name__}")
+        import traceback
+        print("[Analyze] Full traceback:")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=error_msg)

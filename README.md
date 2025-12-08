@@ -13,13 +13,40 @@ Lightweight deepfake audio detection with interpretable explanations.
 
 ## Tech Stack
 
-- **Frontend**: React + Vite + Tailwind CSS
-- **Backend**: FastAPI (Python)
-- **ML Service**: CNN-based model training with TensorFlow
-- **AI Explanation**: Google AI Studio Gemini API
-- **Deployment**: Docker
-
 ## Quick Start
+
+#### Windows (PowerShell)
+
+```powershell
+# From the project root directory
+.\start.ps1
+# Or with API key directly:
+.\start.ps1 -ApiKey "your_key_here"
+```
+
+#### Linux/macOS
+
+```bash
+# From the project root directory
+chmod +x start.sh
+./start.sh
+# Or with API key directly:
+./start.sh --api-key "your_key_here"
+```
+
+**What the script does:**
+
+- ✅ Checks Docker installation
+- ✅ Sets up `.env` file with API key
+- ✅ Verifies ML model file exists
+- ✅ Builds and starts all containers
+- ✅ Displays logs for debugging
+
+**After startup:**
+
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:8000
+- API Docs: http://localhost:8000/docs
 
 ### Docker Setup (Recommended)
 
@@ -47,20 +74,21 @@ npm run dev
 
 #### Backend
 
-```bash
-cd backend
-# Create virtual environment
 python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+source .venv/bin/activate # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
 # Set up environment variables (see Environment Variables section below)
+
 uvicorn main:app --reload --port 8000
-```
+
+````
 
 ## Environment Variables
 
 ### Backend Configuration
+
+A template file (`.env.example`) is provided in the `deployment/` directory.
 
 Create a `.env` file in the `deployment` directory with the following variables:
 
@@ -73,7 +101,7 @@ GEMINI_MODEL=gemini-1.5-flash
 
 # OPTIONAL: Server port (defaults to 8000)
 PORT=8000
-```
+````
 
 To get your Google AI Studio API key:
 
