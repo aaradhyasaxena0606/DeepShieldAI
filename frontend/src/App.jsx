@@ -6,9 +6,11 @@
 
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext.jsx'
+import { LiveMonitorProvider } from './contexts/LiveMonitorContext.jsx'
 import Navbar from './components/Navbar.jsx'
 import { Footer } from './components/Footer.jsx'
 import { ToastContainer } from './components/Toast.jsx'
+import { LiveMonitorWidget } from './components/LiveMonitorWidget.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 import LandingPage from './pages/LandingPage.jsx'
 import HomePage from './pages/HomePage.jsx'
@@ -26,8 +28,10 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <ToastContainer />
-        <div className="app-container">
+        <LiveMonitorProvider>
+          <ToastContainer />
+          <LiveMonitorWidget />
+          <div className="app-container">
           <Navbar />
           <main className="flex-1 h-full w-full bg-fixed mx-auto">
             <Routes>
@@ -52,6 +56,7 @@ function App() {
           </main>
           <Footer />
         </div>
+        </LiveMonitorProvider>
       </AuthProvider>
     </BrowserRouter>
   )
