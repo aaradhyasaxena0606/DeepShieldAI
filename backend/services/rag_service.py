@@ -120,25 +120,24 @@ class RAGService:
             f"- {p['name']}: {p['explanation']}" for p in detected_patterns
         ]) if detected_patterns else "No specific deepfake patterns detected."
         
-        prompt = f"""
-        You are an expert in audio forensics and deepfake detection. Analyze the following deepfake audio detection result:
+        prompt = f"""Analyze this audio deepfake detection result and provide a clear, concise explanation for a general audience.
 
-        Detection Result:
-        - Classification: {prediction.upper()}
-        - Confidence Level: {confidence*100:.1f}%
-        - Confidence Category: {self._confidence_level(confidence)}
+Detection Result:
+- Classification: {prediction.upper()}
+- Confidence: {confidence*100:.1f}%
+- Level: {self._confidence_level(confidence)}
 
-        Detected Patterns:
-        {pattern_details}
+Detected Patterns:
+{pattern_details}
 
-        Please provide a detailed explanation of:
-        1. Why the audio was classified as {prediction.upper()}
-        2. What the detected patterns indicate about the audio's authenticity
-        3. Technical characteristics that suggest synthetic vs. genuine audio
-        4. Limitations of this analysis and what to watch for in future detections
+Provide a natural, conversational explanation covering:
+1. Why this audio was classified as {prediction.upper()}
+2. What the detected patterns reveal about authenticity
+3. Key technical characteristics identified
+4. Important limitations and caveats
 
-        Keep your explanation clear, professional, and accessible to non-experts.
-        """
+Format your response as plain text paragraphs without any markdown formatting (no **, ##, bullets, or special characters). Write in a direct, professional tone without introducing yourself or restating the detection results. Keep it under 300 words and ensure the response is complete.
+"""
         
         # Prepare the request for Google AI Studio API
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model_name}:generateContent?key={self.api_key}"
@@ -157,9 +156,9 @@ class RAGService:
                 }]
             }],
             "generationConfig": {
-                "temperature": 0.4,
-                "maxOutputTokens": 2048,
-                "topP": 0.8,
+                "temperature": 0.5,
+                "maxOutputTokens": 800,
+                "topP": 0.9,
                 "topK": 40
             }
         }
@@ -221,20 +220,32 @@ class RAGService:
         if not text:
             return text
             
-        # Remove excessive whitespace and newlines
-        text = re.sub(r'\n\s*\n\s*\n+', '\n\n', text)
+        # Remove markdown bold/italic formatting
+        text = re.sub(r'\*\*\*(.+?)\*\*\*', r'\1', text)  # Bold italic
+        text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)      # Bold
+        text = re.sub(r'\*(.+?)\*', r'\1', text)          # Italic
+        text = re.sub(r'__(.+?)__', r'\1', text)          # Underline bold
+        text = re.sub(r'_(.+?)_', r'\1', text)            # Underline italic
         
-        # Remove markdown-style headers but keep the content
-        text = re.sub(r'#+\s*', '', text)
+        # Remove markdown headers
+        text = re.sub(r'#{1,6}\s*', '', text)
         
-        # Remove excessive dashes or asterisks used for formatting
+        # Remove excessive dashes or asterisks
         text = re.sub(r'-{3,}', '', text)
         text = re.sub(r'\*{3,}', '', text)
         
-        # Clean up list formatting
-        text = re.sub(r'\n\s*\*\s*', '\n• ', text)
+        # Clean up list formatting - keep bullets simple
+        text = re.sub(r'\n\s*[\*\-]\s*', '\n• ', text)
         
-        # Remove any residual formatting artifacts
+        # Remove excessive whitespace and newlines
+        text = re.sub(r'\n\s*\n\s*\n+', '\n\n', text)
+        text = re.sub(r'[ \t]+', ' ', text)
+        
+        # Remove intro phrases we don't want
+        text = re.sub(r'^(As an expert.*?explanation[:\.]?\s*)', '', text, flags=re.IGNORECASE)
+        text = re.sub(r'^(Here\'s.*?explanation[:\.]?\s*)', '', text, flags=re.IGNORECASE)
+        
+        # Clean up residual formatting
         text = text.strip()
         
         return text
