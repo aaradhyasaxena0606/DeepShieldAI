@@ -1,0 +1,39 @@
+{
+  "team": [
+    {
+      "name": "Bhavya Chawat",
+      "role": "Backend Lead & AI Integration Specialist",
+      "avatar": "/team/bhavya-chawat.jpg",
+      "github": "https://github.com/Bhavya-Chawat",
+      "linkedin": "https://www.linkedin.com/in/bhavya-chawat-48a271307/"
+    },
+    {
+      "name": "Vishwaradhya S Aiholli",
+      "role": "Frontend Lead & DevOps Engineer",
+      "avatar": "/team/vishwaradhya-aiholli.jpg",
+      "github": "https://github.com/VTG56",
+      "linkedin": "https://www.linkedin.com/in/vishwaradhya-s/"
+    },
+    {
+      "name": "Shubhang Kuber",
+      "role": "Machine Learning Engineer",
+      "avatar": "/team/shubhang-kuber.jpg",
+      "github": "https://github.com/Shubhang-Kuber",
+      "linkedin": "https://www.linkedin.com/in/shubhang-kuber/"
+    },
+    {
+      "name": "Kruthi Krishna",
+      "role": "ML Research & Planning Lead",
+      "avatar": "/team/kruthi-krishna.jpg",
+      "github": "https://github.com/kriidevx",
+      "linkedin": "https://www.linkedin.com/in/kruthi-krishna-ba40072a0/"
+    },
+    {
+      "name": "Krish Agarwal",
+      "role": "QA Engineer & Documentation Lead",
+      "avatar": "/team/krish-agarwal.jpg",
+      "github": "https://github.com/krish-31",
+      "linkedin": "https://www.linkedin.com/in/krish-agarwal-99436232a/"
+    }
+  ]
+}

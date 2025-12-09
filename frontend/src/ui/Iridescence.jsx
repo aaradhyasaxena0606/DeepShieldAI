@@ -1,5 +1,6 @@
-import { Renderer, Program, Mesh, Color, Triangle } from 'ogl';
-import { useEffect, useRef } from 'react';
+import { Renderer, Program, Mesh, Color, Triangle } from "ogl";
+import { useEffect, useRef } from "react";
+import { useTheme } from "../contexts/ThemeContext";
 
 const vertexShader = `
 attribute vec2 uv;
@@ -44,16 +45,30 @@ void main() {
 }
 `;
 
-export default function Iridescence({ color = [1, 1, 1], speed = 1.0, amplitude = 0.1, mouseReact = true, ...rest }) {
+export default function Iridescence({
+  color,
+  speed = 1.0,
+  amplitude = 0.1,
+  mouseReact = true,
+  ...rest
+}) {
   const ctnDom = useRef(null);
   const mousePos = useRef({ x: 0.5, y: 0.5 });
+  const { theme } = useTheme();
+
+  // Use theme-aware colors if no color is provided
+  const effectiveColor =
+    color ||
+    (theme === "light"
+      ? [0.7, 0.8, 0.98] // Very light blue for light theme
+      : [0.55, 0.16, 0.16]); // Maroon for dark theme
 
   useEffect(() => {
     if (!ctnDom.current) return;
-    
+
     const ctn = ctnDom.current;
     let renderer, gl, animateId, program, mesh;
-    
+
     try {
       renderer = new Renderer({ alpha: true });
       gl = renderer.gl;
@@ -65,7 +80,7 @@ export default function Iridescence({ color = [1, 1, 1], speed = 1.0, amplitude 
         const width = ctn.offsetWidth * scale;
         const height = ctn.offsetHeight * scale;
         if (width === 0 || height === 0) return;
-        
+
         renderer.setSize(width, height);
         if (program) {
           program.uniforms.uResolution.value = new Color(
@@ -75,9 +90,9 @@ export default function Iridescence({ color = [1, 1, 1], speed = 1.0, amplitude 
           );
         }
       }
-      
-      window.addEventListener('resize', resize, false);
-      
+
+      window.addEventListener("resize", resize, false);
+
       // Initial resize with a slight delay to ensure DOM is ready
       setTimeout(() => resize(), 0);
 
@@ -87,14 +102,20 @@ export default function Iridescence({ color = [1, 1, 1], speed = 1.0, amplitude 
         fragment: fragmentShader,
         uniforms: {
           uTime: { value: 0 },
-          uColor: { value: new Color(...color) },
+          uColor: { value: new Color(...effectiveColor) },
           uResolution: {
-            value: new Color(gl.canvas.width, gl.canvas.height, gl.canvas.width / gl.canvas.height)
+            value: new Color(
+              gl.canvas.width,
+              gl.canvas.height,
+              gl.canvas.width / gl.canvas.height
+            ),
           },
-          uMouse: { value: new Float32Array([mousePos.current.x, mousePos.current.y]) },
+          uMouse: {
+            value: new Float32Array([mousePos.current.x, mousePos.current.y]),
+          },
           uAmplitude: { value: amplitude },
-          uSpeed: { value: speed }
-        }
+          uSpeed: { value: speed },
+        },
       });
 
       mesh = new Mesh(gl, { geometry, program });
@@ -105,13 +126,13 @@ export default function Iridescence({ color = [1, 1, 1], speed = 1.0, amplitude 
         program.uniforms.uTime.value = t * 0.001;
         renderer.render({ scene: mesh });
       }
-      
+
       animateId = requestAnimationFrame(update);
-      
+
       // Add canvas with proper styling
-      gl.canvas.style.width = '100%';
-      gl.canvas.style.height = '100%';
-      gl.canvas.style.display = 'block';
+      gl.canvas.style.width = "100%";
+      gl.canvas.style.height = "100%";
+      gl.canvas.style.display = "block";
       ctn.appendChild(gl.canvas);
 
       function handleMouseMove(e) {
@@ -123,42 +144,42 @@ export default function Iridescence({ color = [1, 1, 1], speed = 1.0, amplitude 
         program.uniforms.uMouse.value[0] = x;
         program.uniforms.uMouse.value[1] = y;
       }
-      
+
       if (mouseReact) {
-        ctn.addEventListener('mousemove', handleMouseMove);
+        ctn.addEventListener("mousemove", handleMouseMove);
       }
 
       return () => {
         if (animateId) cancelAnimationFrame(animateId);
-        window.removeEventListener('resize', resize);
+        window.removeEventListener("resize", resize);
         if (mouseReact && ctn) {
-          ctn.removeEventListener('mousemove', handleMouseMove);
+          ctn.removeEventListener("mousemove", handleMouseMove);
         }
         if (ctn && gl && gl.canvas && ctn.contains(gl.canvas)) {
           ctn.removeChild(gl.canvas);
         }
         if (gl) {
-          gl.getExtension('WEBGL_lose_context')?.loseContext();
+          gl.getExtension("WEBGL_lose_context")?.loseContext();
         }
       };
     } catch (error) {
-      console.error('Iridescence WebGL Error:', error);
+      console.error("Iridescence WebGL Error:", error);
       return () => {};
     }
-  }, [color, speed, amplitude, mouseReact]);
+  }, [effectiveColor, speed, amplitude, mouseReact, theme]);
 
   return (
     <div
       ref={ctnDom}
       style={{
-        position: 'fixed',
+        position: "fixed",
         top: 0,
         left: 0,
-        width: '100%',
-        height: '100%',
+        width: "100%",
+        height: "100%",
         zIndex: 0,
-        pointerEvents: mouseReact ? 'auto' : 'none',
-        overflow: 'hidden'
+        pointerEvents: mouseReact ? "auto" : "none",
+        overflow: "hidden",
       }}
       {...rest}
     />

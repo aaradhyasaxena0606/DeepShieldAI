@@ -4,17 +4,19 @@
 
 export function Footer() {
   return (
-    <footer className="relative bg-brown-900/40 backdrop-blur-lg border-t border-beige-200/10">
+    <footer className="relative bg-brown-900/40 backdrop-blur-lg border-t border-beige-200/10 mb-16 md:mb-0">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           {/* Left: Brand */}
           <div className="flex items-center gap-3">
-            <img 
-              src="/logo.png" 
-              alt="VoiceGuard AI" 
+            <img
+              src="/logo.png"
+              alt="VoiceGuard AI"
               className="w-6 h-6 object-contain rounded-lg"
             />
-            <span className="text-sm font-semibold text-beige-200">VoiceGuard AI</span>
+            <span className="text-sm font-semibold text-beige-200">
+              VoiceGuard AI
+            </span>
           </div>
 
           {/* Center: Copyright */}
