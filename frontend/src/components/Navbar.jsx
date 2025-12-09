@@ -186,6 +186,16 @@ export default function Navbar() {
             {/* Theme Toggle */}
             <ThemeToggle />
 
+            {/* Download Button */}
+            <a
+              href="https://drive.google.com/uc?export=download&id=1HhAm9CGCSrh9EYgfXVFArVBmw_1jI9Yz"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-black/40 hover:bg-black/60 backdrop-blur-lg border border-beige-200/20 hover:border-beige-200/30 rounded-xl transition-all duration-300"
+            >
+              <span className="text-sm text-beige-100">Download for Desktop</span>
+            </a>
+
             {isAuthenticated ? (
               <>
                 {/* User Info - Clickable to Profile */}
@@ -321,13 +331,27 @@ export default function Navbar() {
               )
             )}
 
+            {/* Download Button - Always show */}
+            <a
+              href="https://drive.google.com/uc?export=download&id=1HhAm9CGCSrh9EYgfXVFArVBmw_1jI9Yz"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setMobileMenuOpen(false)}
+              className="mt-6 px-8 py-4 bg-black/40 backdrop-blur-lg hover:bg-black/60 text-beige-100 font-semibold text-base rounded-xl border border-beige-200/20 hover:border-beige-200/30 transition-all"
+              style={{
+                animation: "slideInLeft 0.6s ease-out 0.25s backwards",
+              }}
+            >
+              📥 Download APK
+            </a>
+
             {isAuthenticated ? (
               <>
                 {/* User Info Mobile - Clickable to Profile */}
                 <NavLink
                   to="/profile"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="mt-6 flex flex-col items-center gap-2 px-6 py-4 bg-black/40 hover:bg-black/60 backdrop-blur-lg border border-beige-200/20 hover:border-beige-200/30 rounded-xl transition-all"
+                  className="mt-4 flex flex-col items-center gap-2 px-6 py-4 bg-black/40 hover:bg-black/60 backdrop-blur-lg border border-beige-200/20 hover:border-beige-200/30 rounded-xl transition-all"
                   style={{
                     animation: "slideInLeft 0.6s ease-out 0.3s backwards",
                   }}
@@ -362,9 +386,9 @@ export default function Navbar() {
                 <NavLink
                   to="/login"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="mt-6 px-8 py-4 bg-black/40 backdrop-blur-lg hover:bg-black/60 text-beige-100 font-semibold text-base rounded-xl border border-beige-200/20 transition-all"
+                  className="mt-4 px-8 py-4 bg-black/40 backdrop-blur-lg hover:bg-black/60 text-beige-100 font-semibold text-base rounded-xl border border-beige-200/20 transition-all"
                   style={{
-                    animation: "slideInLeft 0.6s ease-out 0.3s backwards",
+                    animation: "slideInLeft 0.6s ease-out 0.35s backwards",
                   }}
                 >
                   Sign In
@@ -376,7 +400,7 @@ export default function Navbar() {
                   onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center gap-2 px-8 py-4 bg-maroon-600 hover:bg-maroon-700 text-beige-50 font-semibold text-base rounded-xl transition-all"
                   style={{
-                    animation: "slideInLeft 0.6s ease-out 0.4s backwards",
+                    animation: "slideInLeft 0.6s ease-out 0.45s backwards",
                   }}
                 >
                   Get Started

@@ -225,6 +225,22 @@ export default function LandingPage() {
                   whileHover={{ scale: 1.08 }}
                   whileTap={{ scale: 0.95 }}
                 >
+                  <a
+                    href="https://drive.google.com/uc?export=download&id=1HhAm9CGCSrh9EYgfXVFArVBmw_1jI9Yz"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group inline-flex items-center gap-3 px-10 py-5 bg-black/60 backdrop-blur-xl hover:bg-black/80 text-beige-100 font-bold text-lg rounded-2xl border-2 border-beige-200/30 hover:border-beige-200/50 transition-all duration-300"
+                  >
+                    <Upload className="w-5 h-5 text-maroon-400" />
+                    <span className="hidden sm:inline">Download for Desktop</span>
+                    <span className="sm:hidden">Download APK</span>
+                  </a>
+                </motion.div>
+
+                <motion.div
+                  whileHover={{ scale: 1.08 }}
+                  whileTap={{ scale: 0.95 }}
+                >
                   <Link
                     to="/about"
                     className="group inline-flex items-center gap-3 px-10 py-5 bg-black/60 backdrop-blur-xl hover:bg-black/80 text-beige-100 font-bold text-lg rounded-2xl border-2 border-beige-200/30 hover:border-beige-200/50 transition-all duration-300"
@@ -425,6 +441,22 @@ export default function LandingPage() {
                       Get Started Free
                       <ArrowRight className="w-5 h-5" />
                     </Link>
+                  </motion.div>
+
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <a
+                      href="https://drive.google.com/uc?export=download&id=1HhAm9CGCSrh9EYgfXVFArVBmw_1jI9Yz"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-3 px-10 py-5 bg-black/60 backdrop-blur-xl hover:bg-black/80 text-beige-100 font-bold text-lg rounded-2xl border-2 border-beige-200/30 hover:border-beige-200/50 transition-all duration-300"
+                    >
+                      <Upload className="w-5 h-5 text-maroon-400" />
+                      <span className="hidden sm:inline">Download for Desktop</span>
+                      <span className="sm:hidden">Download APK</span>
+                    </a>
                   </motion.div>
 
                   <motion.div
