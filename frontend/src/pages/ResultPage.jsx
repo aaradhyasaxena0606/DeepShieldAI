@@ -298,7 +298,7 @@ export default function ResultPage() {
       { align: "center" }
     );
     doc.text(
-      "For more information, visit: https://voiceguard.ai",
+      "For more information, visit: https://github.com/VTG56/VoiceGuard-AI",
       pageWidth / 2,
       pageHeight - 8,
       { align: "center" }
